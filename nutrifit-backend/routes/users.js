@@ -1,9 +1,10 @@
 import express from "express"
-
 const router = express.Router()
 
 import argon2 from "argon2"
+import { register, getUser } from "../controller/userController.js";
 
-router.get("/register", async (request, response) => {
-    
-});
+router.post("/register", register);
+router.get("/getUser", getUser);
+
+export default router;
