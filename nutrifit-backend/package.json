@@ -9,10 +9,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "argon2": "^0.43.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "mssql": "^11.0.1"
+    "msnodesqlv8": "^4.5.0",
+    "mssql": "^11.0.1",
+    "ntlm": "^0.1.3"
   }
 }
