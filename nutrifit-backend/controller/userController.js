@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const sql = require('mssql/msnodesqlv8');
 
 import argon2 from "argon2"
+import jsonwebtoken from "jsonwebtoken"
 import { json } from "express"
 import { v4 as uuidv4 }from "uuid"
 
@@ -72,5 +73,25 @@ export async function getUser(req, res) {
         return res.status(500).json({error: err.message});
     } finally {
         sql.close();
+    }
+}
+
+export async function login(req, res) {
+    try {
+        await sql.connect(config);
+
+        // No SQL Injection countermeasures
+
+        const request = new sql.Request()
+        const hashedPassword = await argon2.hash(req.body.password);
+        request.input('email', sql.VarChar(255), req.body.email);
+        request.input('password', sql.VarChar(255), hashedPassword);
+
+        const query = 'SELECT * FROM [NutriFit].[user] WHERE email == @email AND password == @password'
+        const response = await request.query(query);
+
+        if(len(response.recordset) == 0) {
+            throw new Error('Account does not exist');
+        }
     }
 }
