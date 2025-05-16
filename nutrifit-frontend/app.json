@@ -34,10 +34,18 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store",
-      {
-        "usesNonExemptEncryption": false
-      }
+      [
+          "expo-secure-store",
+          {
+              "usesNonExemptEncryption": false
+          }
+      ],
+      [
+          "expo-camera",
+          {
+              "cameraPermission": "Allow NutriFit to access your camera",
+          }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

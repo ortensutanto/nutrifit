@@ -1,5 +1,6 @@
-import React, {useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Text, View } from "react-native";
+import { useRouter } from "expo-router"; // Navigate to different pages
 
 import * as SecureStore from 'expo-secure-store'; // Buat simpen data
 // save(key, value) == (userToken, '...')
@@ -24,14 +25,15 @@ const GetUser = async (setUserData: React.Dispatch<React.SetStateAction<string>>
 
 export default function Index() {
   const [userData, setUserData] = useState<string>("");
+  const router = useRouter();
   return (
-    <View
+      <View
       style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
       }}
-    >
+      >
       <Text>Edit app/index.tsx to edit this screen.</Text>
       <Text>Hi!</Text>
       <Button
@@ -39,6 +41,11 @@ export default function Index() {
       title="GetUser In Console" 
       />
       <Text style={{ marginTop: 20 }}>{userData}</Text>
-    </View>
+
+      <Button
+      title="Go To Camera"
+      onPress={() => router.navigate('/barcodescanner')}
+      />
+      </View>
   );
 }

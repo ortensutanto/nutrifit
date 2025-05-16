@@ -148,8 +148,27 @@ export async function editWeight(req, res) {
         if(err.message.startsWith('Unauthorized')) {
             return res.status(401).json({ error: err.message });
         }
-        return res.status(500).json({error: 'Unexpected error occured'})
+        return res.status(500).json({error: 'Unexpected error occured'});
     } finally {
         sql.close();
     }
+}
+
+export async function getData(req, res) {
+     try {
+        await sql.connect();
+        const request = new sql.Request();
+        decodedToken = await authentication(req);
+        const userId = decoded.sub;
+        request.input('user_id', sql.UniqueIdentifier, userId);
+        const query = 'SELECT * FROM [NutriFit].[user] WHERE user_id = @user_id';
+        await request.query(query);
+
+        return res.status(200).json({ data:request.recordset });
+     } catch(err) {
+        console.error(err);
+        return res.status(500).json({error: 'Unexpected error occured'});
+     } finally {
+        sql.close();
+     }
 }
