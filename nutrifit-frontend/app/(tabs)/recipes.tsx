@@ -1,0 +1,229 @@
+import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+const dummyData = Array(4).fill({
+  title: 'Healthy Taco Salad with fresh vegetable',
+  calories: '120 Kcal',
+  image: require('@/assets/images/recipe-salad.png'),
+});
+
+const sections = ['Breakfast', 'Lunch', 'Dinner'];
+const calorieOptions = ['0 - 200', '200 - 400', '400 - 600', '> 600'];
+
+export default function RecipesScreen() {
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('');
+
+  const handleFilterSelect = (filter: string) => {
+    setSelectedFilter(filter);
+    setDropdownVisible(false);
+  };
+
+  const renderSection = ({ item: section }: { item: string }) => (
+    <View style={{ marginBottom: 20 }}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{section}</Text>
+        <TouchableOpacity>
+          <Text style={styles.seeAll}>See all</Text>
+        </TouchableOpacity>
+      </View>
+      <FlatList
+        data={dummyData}
+        horizontal={false}
+        numColumns={2}
+        keyExtractor={(_, index) => section + index}
+        renderItem={({ item }) => <RecipeCard item={item} />}
+        scrollEnabled={false}
+      />
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Search */}
+      <View style={styles.searchBar}>
+        <Feather name="search" size={20} color="#555" style={{ marginRight: 6 }} />
+        <TextInput
+          placeholder="Find Recipe"
+          style={styles.searchInput}
+          placeholderTextColor="#666"
+        />
+        <TouchableOpacity onPress={() => setDropdownVisible(true)}>
+          <Feather name="chevron-down" size={20} color="#555" />
+        </TouchableOpacity>
+      </View>
+
+      {selectedFilter ? (
+        <Text style={styles.filterText}>Filtered: {selectedFilter}</Text>
+      ) : null}
+
+      {/* Modal Dropdown */}
+      <Modal visible={dropdownVisible} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setDropdownVisible(false)}
+        >
+          <View style={styles.dropdown}>
+            {calorieOptions.map((option, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={styles.dropdownItem}
+                onPress={() => handleFilterSelect(option)}
+              >
+                <Text style={styles.dropdownText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Banner */}
+      <TouchableOpacity style={styles.recommendation}>
+        <Text style={styles.recommendText}>Try Our Food Recipe Recommendation</Text>
+        <Text style={{ fontSize: 18 }}>✨</Text>
+      </TouchableOpacity>
+
+      {/* Sections rendered in FlatList */}
+      <FlatList
+        data={sections}
+        keyExtractor={(item) => item}
+        renderItem={renderSection}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+}
+
+function RecipeCard({ item }: { item: any }) {
+  const router = useRouter();
+
+  return (
+    <TouchableOpacity style={styles.card} onPress={() => router.push('/recipedetail')}>
+      <Image source={item.image} style={styles.cardImage} />
+      <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+      <View style={styles.cardFooter}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Feather name="droplet" size={14} color="#aaa" />
+          <Text style={styles.calorieText}>{item.calories}</Text>
+        </View>
+        <Feather name="heart" size={16} color="#aaa" />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'rgba(236, 250, 216, 1)',
+    padding: 16,
+    paddingTop: 50,
+    paddingBottom: 200,
+  },
+  searchBar: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#000',
+  },
+  recommendation: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  recommendText: {
+    fontSize: 15,
+    color: '#1a1a1a',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    marginTop: 6,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  seeAll: {
+    fontSize: 14,
+    color: '#007AFF',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    width: '47%',
+    margin: '1.5%',
+  },
+  cardImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  calorieText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: '#666',
+  },
+  filterText: {
+    fontSize: 13,
+    color: '#333',
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingTop: 100,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  dropdown: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    padding: 10,
+    elevation: 5,
+  },
+  dropdownItem: {
+    paddingVertical: 10,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#333',
+  },
+
+});
