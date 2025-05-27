@@ -240,14 +240,14 @@ export async function testSingleJSON(req, res) {
       } else {
         // 7b) Insert new food_item (no UPC available)
         foodItemId = uuidv4();
-        getIngredientDetails()
+        const ingredientDetails = getIngredientDetails(food_id, serving_id);
         const insReq = new sql.Request(transaction);
         insReq.input('fid',  sql.UniqueIdentifier, foodItemId);
-        insReq.input('nm',   sql.VarChar(255),     name);
-        insReq.input('cals', sql.Float,            null);    // unknown
-        insReq.input('prot', sql.Float,            null);
-        insReq.input('carb', sql.Float,            null);
-        insReq.input('fat',  sql.Float,            null);
+        insReq.input('nm',   sql.VarChar(255),     ingredientDetails.food_name);
+        insReq.input('cals', sql.Float,            ingredientDetails.calories);    // unknown
+        insReq.input('prot', sql.Float,            ingredientDetails.protein);
+        insReq.input('carb', sql.Float,            ingredientDetails.carbohydrates);
+        insReq.input('fat',  sql.Float,            ingredientDetails.fat);
         await insReq.query(`
           INSERT INTO NutriFit.food_items
             (food_item_id, upc_barcode, name, calories, protein, carbohydrate, fat)
