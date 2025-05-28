@@ -154,9 +154,105 @@ export async function editWeight(req, res) {
     }
 }
 
-export async function getData(req, res) {
+export async function editAge(req, res) {
+    try {
+        await sql.connect(config);
+        const request = new sql.Request();
+        request.input('age', sql.Int, req.body.age);
+
+        const decodedToken = await authentication(req);
+        const userId = decodedToken.sub; // For some reason it's called sub
+        request.input('user_id', sql.UniqueIdentifier, userId);
+        const query = 'UPDATE [NutriFit].[user] SET age = @age WHERE user_id=@user_id';
+        await request.query(query);
+
+        return res.status(200).json({ message: 'Age updated successfuly' })
+    } catch(err) {
+        console.error(err);
+        if(err.message.startsWith('Unauthorized')) {
+            return res.status(401).json({ error: err.message });
+        }
+        return res.status(500).json({error: 'Unexpected error occured'});
+    } finally {
+        sql.close();
+    }
+}
+
+export async function editGender(req, res) {
+    try {
+        await sql.connect(config);
+        const request = new sql.Request();
+        request.input('gender', sql.TinyInt, req.body.gender);
+
+        const decodedToken = await authentication(req);
+        const userId = decodedToken.sub; // For some reason it's called sub
+        request.input('user_id', sql.UniqueIdentifier, userId);
+        const query = 'UPDATE [NutriFit].[user] SET gender = @gender WHERE user_id=@user_id';
+        await request.query(query);
+
+        return res.status(200).json({ message: 'Gender updated successfuly' })
+    } catch(err) {
+        console.error(err);
+        if(err.message.startsWith('Unauthorized')) {
+            return res.status(401).json({ error: err.message });
+        }
+        return res.status(500).json({error: 'Unexpected error occured'});
+    } finally {
+        sql.close();
+    }
+}
+
+export async function editHeight(req, res) {
+    try {
+        await sql.connect(config);
+        const request = new sql.Request();
+        request.input('height', sql.Float, req.body.height);
+
+        const decodedToken = await authentication(req);
+        const userId = decodedToken.sub; // For some reason it's called sub
+        request.input('user_id', sql.UniqueIdentifier, userId);
+        const query = 'UPDATE [NutriFit].[user] SET height = @height WHERE user_id=@user_id';
+        await request.query(query);
+
+        return res.status(200).json({ message: 'Height updated successfuly' })
+    } catch(err) {
+        console.error(err);
+        if(err.message.startsWith('Unauthorized')) {
+            return res.status(401).json({ error: err.message });
+        }
+        return res.status(500).json({error: 'Unexpected error occured'});
+    } finally {
+        sql.close();
+    }
+}
+
+export async function editDisplayName(req, res) {
+    try {
+        await sql.connect(config);
+        const request = new sql.Request();
+        request.input('display_name', sql.Float, req.body.display_name);
+
+        const decodedToken = await authentication(req);
+        const userId = decodedToken.sub; // For some reason it's called sub
+        request.input('user_id', sql.UniqueIdentifier, userId);
+        const query = 'UPDATE [NutriFit].[user] SET display_name = @display_name WHERE user_id=@user_id';
+        await request.query(query);
+
+        return res.status(200).json({ message: 'Display Name updated successfuly' })
+    } catch(err) {
+        console.error(err);
+        if(err.message.startsWith('Unauthorized')) {
+            return res.status(401).json({ error: err.message });
+        }
+        return res.status(500).json({error: 'Unexpected error occured'});
+    } finally {
+        sql.close();
+    }
+}
+
+export async function getUserData(req, res) {
      try {
-        await sql.connect();
+        await sql.connect(config);
         const request = new sql.Request();
         decodedToken = await authentication(req);
         const userId = decoded.sub;

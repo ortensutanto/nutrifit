@@ -1,6 +1,7 @@
 // Routes (Masukin dari folder routes)
 import users from "./routes/users.js"
 import recipes from "./routes/recipes.js"
+import reviews from "./routes/reviews.js"
 
 import express from "express"
 import cors from "cors"
@@ -20,6 +21,7 @@ const sql = require('mssql/msnodesqlv8');
 // Contoh Query
 app.use("/users", users);
 app.use("/recipes", recipes);
+app.use("/reviews", reviews);
 
 // Status endpoint
 app.get("/status", (request, response) => {
