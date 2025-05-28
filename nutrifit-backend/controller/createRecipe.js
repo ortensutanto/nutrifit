@@ -7,6 +7,8 @@ import dotenv from "dotenv/config"
 
 import { fetch } from "undici";
 import { v4 as uuidv4 }from "uuid"
+import { isNull } from "util";
+import { throws } from "assert";
 var request = require("request");
 
 const config = {
@@ -47,7 +49,7 @@ export async function fatSecretAccessToken(req, res) {
 }
 
 // Will change every day
-const accessToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjEwOEFEREZGRjZBNDkxOUFBNDE4QkREQTYwMDcwQzE5NzNDRjMzMUUiLCJ0eXAiOiJhdCtqd3QiLCJ4NXQiOiJFSXJkX19ha2tacWtHTDNhWUFjTUdYUFBNeDQifQ.eyJuYmYiOjE3NDc3MTM1ODEsImV4cCI6MTc0Nzc5OTk4MSwiaXNzIjoiaHR0cHM6Ly9vYXV0aC5mYXRzZWNyZXQuY29tIiwiYXVkIjoiYmFzaWMiLCJjbGllbnRfaWQiOiJiN2FiY2VkYjZlNDU0ZjMzOTA4MTRjOGI5YzA3ZGFlNyIsInNjb3BlIjpbImJhc2ljIl19.UdegWnLcGaxHeTnVk4SyCT69rX83ilyKB1kVT2fnDA6434eApiK6Nghvi5Hf_NLlxzxKk1LI0hKzk_cG8zXU_JwbFjJBk7XV97NH1FqkHoaMOA8yTQ7nPoTb86tPGW4ykLwJ7ZqaULlsf2Q7ThzzW4xoeqD7sH9tjIULjsS2O1KAlrg1pyN3ZULYpiN6rHIBDUcNiDR6HdD-HxqRvr3N88IgbHAbnPsO5BHG_lHeAEGlzyUaEeX-IlxMprpk8xrSd7RqAruLxU5TtnodfvqlfHJF2N_lfriMlhWfWQe-vSdvGAdHA7gLycCw7vazweQggw7aRMy5LEj75xCE6uGos-MhB__IaheHAiF8CqbErDdIRJjlxR-Pzol40eQP88xpeGVLQBZJs9as9go8u1uwi_u_hQZDc9CtfBb0aUs4Www1rL0yHdT7WbrrvUYqjW7n4zqOeV84NPF3r2g3GCCjCWK96FQ3CUDa6_8Bn2x9RbGOni8Z-NWCiuFsHg2EakbOs1fvhgucCGf2_8vK4wFdDB8iCO9Zcvh6lDmkRd-m5t6RqAucMGQOPRHX1gERsavnwK6ldqvr_Sg3VYzqc1PWRTq0RlxsuXzlfbU95WWdnoeB8KkTXYv3XlaH4eLHqbNGBat9XIhm3U-EB-1XsxwbVu5rttaCHd1r4HHffhDatpk'
+const accessToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjEwOEFEREZGRjZBNDkxOUFBNDE4QkREQTYwMDcwQzE5NzNDRjMzMUUiLCJ0eXAiOiJhdCtqd3QiLCJ4NXQiOiJFSXJkX19ha2tacWtHTDNhWUFjTUdYUFBNeDQifQ.eyJuYmYiOjE3NDg0MDg2MTgsImV4cCI6MTc0ODQ5NTAxOCwiaXNzIjoiaHR0cHM6Ly9vYXV0aC5mYXRzZWNyZXQuY29tIiwiYXVkIjoiYmFzaWMiLCJjbGllbnRfaWQiOiJiN2FiY2VkYjZlNDU0ZjMzOTA4MTRjOGI5YzA3ZGFlNyIsInNjb3BlIjpbImJhc2ljIl19.atLuRLP0bCSQFifjqMied2AeIeEhcFguBDiCv9-xBWNVqRT0Ovcshe64ztVUE1Rp5XHV-qTCvok2FsN7NHP2uGAKOgkt7GRNGxtKUc18jAooi7Q7Qo2_7O6cTQhVfINBj-DUYNI5hWaRi1TOoalDF4G39_fVfj7dQYbMfJrvATuwmWrdR_L7UJk69LwsJJ_bQ2BifJKJDLN2jO59J_8yObBVs50pkLGJQ6Emxp1VsfyMKnTKzLxdbT4SrWGKs44HjV-OlWV5nZGZ4DenmKOw5qeg8YUqXrx_1ZxD-L6mWfFj-2GRG1p6fpfIWeNsdKX1PHLBO1s3X6rPpUNO5NDdfAlXxPmGn7_ZEfvCWAjHhmJazUmijy_dt9nMpLW6Wgcjxj1YbZ2jDRNEfLYLQ4eWwL2AxjEnLYIDvIj971GZuzRIjbQ4SGhxKcuX8uGNCp8IBAkrx8RCzxs7rr5DG9iq2uOnCepr37_btsbA81j3GOp1GY3aID-Trm6EQvAVlVEvWoOXPn4k-NB84DXX-JV0fcNEWzVADrhIUlymGdWpfWoOrwT8OhrZtOCQ0cm-QwMg5EIUaGkmcwXsO6IoULc4xikwW7B62vXniAKOzXPWWoSCFf-oAc1pE9NYBRoI2L6NxM2RQFHsnbr7HUUlyR6eyec11TzJeWhP78oPtkLFtyQ'
 
 export async function findRecipe(req, res) {
     API_URL = 'https://platform.fatsecret.com/rest/recipes/search/v3'
@@ -75,22 +77,34 @@ async function getIngredientDetails(foodId, servingId) {
         throw new Error('Fetch error:');
     }
     const data = await response.json();
-    const servings = data.food.servings;
+    const servings = data.food.servings.serving;
+
+    // console.log(`Food ID ${foodId}, Serving ID ${servingId}:\n`)
+    // console.log(servings);
+
     let foundServing = null; // Serving in recipe
-    
+
     for(let i=0; i < servings.length; i++) {
         const tempServing = servings[i];
         if(tempServing.serving_id == servingId) {
+            console.log("Serving ID FOUND inside loop: " + tempServing.serving_id);
             foundServing = tempServing;
             break;
         }
     }
-    
-    if(foundServing == null) {
-        throw new Error('Serving ID not found');
+
+    // Bugged servingId
+    if(servingId == 0) {
+        foundServing = servings[0]
+    } 
+
+    if(!foundServing) {
+        throw new Error(`Serving ID ${servingId} not found for food ID ${foodId}.`)
     }
 
-    // Ga tambahin serving dll, terlalu ribet kayanya
+    console.log(foundServing);
+    console.log(foundServing.calories);
+
     const foodName = data.food.food_name;
     const calories = Number(foundServing.calories);
     const protein = Number(foundServing.protein) || null;
@@ -101,261 +115,194 @@ async function getIngredientDetails(foodId, servingId) {
         "foodName": foodName,
         "calories": calories,
         "protein": protein,
-        "carbohydrate": carbohydrate,
+        "carbohydrates": carbohydrate,
         "fat": fat
     }
 }
 
-export async function testSingleJSON(req, res) {
-  let pool;
-  let transaction;
-
-  try {
-    // 1) Connect & begin transaction
-    pool = await sql.connect(config);
-    transaction = new sql.Transaction(pool);
-    await transaction.begin();
-
-    const recipe = req.body.recipe;
-    if (!recipe) {
-      await transaction.rollback();
-      return res.status(400).json({ error: 'Missing recipe data' });
-    }
-
-    // 2) Validate required recipe‐level fields
-    const {
-      number_of_servings: nsRaw,
-      serving_sizes,
-      preparation_time_min: prepRaw,
-      cooking_time_min: cookRaw,
-      recipe_name,
-      recipe_description,
-      directions,
-      recipe_images,
-      ingredients
-    } = recipe;
-
-    // Basic numeric checks
-    const calRaw = serving_sizes?.serving?.calories;
-    if (!nsRaw || isNaN(+nsRaw)) {
-      throw new Error('Invalid or missing number_of_servings');
-    }
-    if (!calRaw || isNaN(+calRaw)) {
-      throw new Error('Invalid or missing serving_sizes.serving.calories');
-    }
-    if (!prepRaw || isNaN(+prepRaw)) {
-      throw new Error('Invalid or missing preparation_time_min');
-    }
-    if (!cookRaw || isNaN(+cookRaw)) {
-      throw new Error('Invalid or missing cooking_time_min');
-    }
-
-    // // Validate ingredients array
-    // if (!Array.isArray(ingredients) || ingredients.length === 0) {
-    //   throw new Error('Missing or invalid ingredients list');
-    // }
-    // for (const ing of ingredients) {
-    //   if (!ing.name || !ing.quantity || !ing.unit) {
-    //     throw new Error('Each ingredient must have name, quantity, and unit');
-    //   }
-    // }
-
-    // 3) Compute derived values
-    const serving_size = parseInt(nsRaw, 10);
-    const calories     = serving_size * Number(calRaw);
-    const prepTime     = parseInt(prepRaw, 10);
-    const cookTime     = parseInt(cookRaw, 10);
-
-    // 4) Build instruction string
-    const steps = directions?.direction || [];
-    const instructionString = steps
-      .map(s => `${s.direction_number}. ${s.direction_description}`)
-      .join(' ');
-
-    // 5) Choose image URL
-    const imageUrl =
-      recipe_images?.recipe_image?.[0] ||
-      recipe.recipe_image ||
-      null;
-
-    // 6) Insert recipe
-    const txRequest = new sql.Request(transaction);
-    const newRecipeId = uuidv4();
-    txRequest.input('recipe_id',         sql.UniqueIdentifier, newRecipeId);
-    txRequest.input('author_id',         sql.UniqueIdentifier, '83d6d048-06ab-41f0-9cdf-0c26e8331aab');
-    txRequest.input('image_url',         sql.VarChar(1000),     imageUrl);
-    txRequest.input('title',             sql.VarChar(255),      recipe_name);
-    txRequest.input('description',       sql.VarChar(255),      recipe_description);
-    txRequest.input('serving_size',      sql.Int,               serving_size);
-    txRequest.input('calories',          sql.Float,             calories);
-    txRequest.input('instruction',       sql.VarChar(1000),     instructionString);
-    txRequest.input('prep_time_minutes', sql.Int,               prepTime);
-    txRequest.input('cook_time_minutes', sql.Int,               cookTime);
-    txRequest.input('created_at',        sql.DateTime2,         new Date());
-
-    await txRequest.query(`
-      INSERT INTO NutriFit.recipes
-        (recipe_id, author_id, image_url, title, description,
-         serving_size, calories, instruction,
-         prep_time_minutes, cook_time_minutes, created_at)
-      VALUES
-        (@recipe_id, @author_id, @image_url, @title, @description,
-         @serving_size, @calories, @instruction,
-         @prep_time_minutes, @cook_time_minutes, @created_at)
-    `);
-
-    // 7) For each ingredient: upsert into food_items, then link
-
-    const ingList = recipe.ingredients?.ingredient || [];
-    if (!Array.isArray(ingList) || ingList.length === 0) {
-      throw new Error('Missing or invalid ingredients list');
-    }
-
-    for (const ing of ingList) {
-      const {
-        // FatSecret’s IDs aren’t UPCs, so we’ll use name lookup only:
-        food_name: name,
-        number_of_units: quantityRaw,
-        measurement_description: unit,
-        food_id: food_id,                    // optional external ref
-        serving_id: serving_id
-      } = ing;
-
-      // Validate quantity/unit
-      const quantity = parseFloat(quantityRaw);
-      if (isNaN(quantity) || !unit) {
-        throw new Error(`Invalid quantity or unit on ingredient "${name}"`);
-      }
-
-      // 7a) Try find existing food_item by name
-      const findReq = new sql.Request(transaction);
-      findReq.input('nm', sql.VarChar(255), name);
-      const { recordset: found } = await findReq.query(
-        `SELECT food_item_id FROM NutriFit.food_items WHERE name = @nm`
-      );
-
-      let foodItemId;
-      if (found.length) {
-        foodItemId = found[0].food_item_id;
-      } else {
-        // 7b) Insert new food_item (no UPC available)
-        foodItemId = uuidv4();
-        const ingredientDetails = getIngredientDetails(food_id, serving_id);
-        const insReq = new sql.Request(transaction);
-        insReq.input('fid',  sql.UniqueIdentifier, foodItemId);
-        insReq.input('nm',   sql.VarChar(255),     ingredientDetails.food_name);
-        insReq.input('cals', sql.Float,            ingredientDetails.calories);    // unknown
-        insReq.input('prot', sql.Float,            ingredientDetails.protein);
-        insReq.input('carb', sql.Float,            ingredientDetails.carbohydrates);
-        insReq.input('fat',  sql.Float,            ingredientDetails.fat);
-        await insReq.query(`
-          INSERT INTO NutriFit.food_items
-            (food_item_id, upc_barcode, name, calories, protein, carbohydrate, fat)
-          VALUES
-            (@fid, NULL, @nm, @cals, @prot, @carb, @fat)
-        `);
-  }
-
-  // 7c) Link recipe ↔ ingredient
-  const linkReq = new sql.Request(transaction);
-  linkReq.input('rid',  sql.UniqueIdentifier, newRecipeId);
-  linkReq.input('fid',  sql.UniqueIdentifier, foodItemId);
-  linkReq.input('qty',  sql.Float,            quantity);
-  linkReq.input('unit', sql.VarChar(50),      unit);
-  await linkReq.query(`
-    INSERT INTO NutriFit.recipe_ingredients
-      (recipe_id, food_item_id, quantity, unit)
-    VALUES
-      (@rid, @fid, @qty, @unit)
-  `);
-}
-
-    // 8) Commit & respond
-    await transaction.commit();
-    return res.json({ recipe_id: newRecipeId });
-
-  } catch (err) {
-    // Roll back on error
-    if (transaction) await transaction.rollback();
-    console.error(err);
-    return res.status(500).json({ error: err.message || 'Server error' });
-  } finally {
-    if (pool) pool.close();
-  }
-}
-
-
 export async function addRecipe(req, res) {
-  try {
-    // Parse incoming IDs
-    const recipes = req.body.recipes.recipe;
-    const maxResults = Number(req.body.recipes.max_results) || recipes.length;
-    const bearerToken = process.env.FATSECRET_ACCESS_TOKEN;
-    const apiBase = 'https://platform.fatsecret.com/rest';
-    const idList = [];
+    let pool;
+    let transaction;
 
-    // Connect to database
-    await sql.connect(config);
+    try {
+        pool = await sql.connect(config);
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
 
-    for (let i = 0; i < maxResults && i < recipes.length; i++) {
-      const recipeId = Number(recipes[i].recipe.recipe_id);
-
-      // Fetch recipe details
-      const detailUrl = `${apiBase}/recipe/v2?format=json&recipe_id=${recipeId}`;
-      const detailResp = await fetch(detailUrl, {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Accept': 'application/json'
+        const recipe = req.body.recipe;
+        if(!recipe) {
+            await transaction.rollback();
+            throw new Error("Missing Recipe Data");
         }
-      });
 
-      if (!detailResp.ok) {
-        console.error(`Failed to fetch recipe ${recipeId}: ${detailResp.statusText}`);
-        continue;
-      }
+        const {
+            number_of_servings,
+            serving_sizes,
+            preparation_time_min,
+            cooking_time_min,
+            recipe_name,
+            recipe_description,
+            directions, // Instructions
+            recipe_images,
+        } = recipe;
+        const newRecipeId = uuidv4();
 
-      const body = await detailResp.json();
-      const recipe = body.recipe;
+        // Setting recipe variables
+        const serving_size = Number(number_of_servings);
+        const recipeCalories = Number(serving_sizes.serving.calories);
+        const prepTime = Number(preparation_time_min);
+        const cookTime = Number(cooking_time_min);
+        
+        // Parsing instructions
+        const steps = directions?.direction || [];
+        const instructionString = steps.map(s => `${s.direction_number}. ${s.direction_description}`).join(' ');
+        const imageUrl = recipe_images?.recipe_image?.[0];
 
-      // Build instruction string
-      const steps = recipe.directions.direction || [];
-      const instructionString = steps
-        .map(s => `${s.direction_number}. ${s.direction_description}`)
-        .join(' ');
+        const recipeRequest = new sql.Request(transaction);
+        recipeRequest.input('recipe_id', sql.UniqueIdentifier, newRecipeId);
+        recipeRequest.input('author_id', sql.UniqueIdentifier, '83d6d048-06ab-41f0-9cdf-0c26e8331aab');
+        recipeRequest.input('image_url', sql.VarChar(1000), imageUrl);
+        recipeRequest.input('title',             sql.VarChar(255),      recipe_name);
+        recipeRequest.input('description',       sql.VarChar(255),      recipe_description);
+        recipeRequest.input('serving_size',      sql.Int,               serving_size);
+        recipeRequest.input('calories',          sql.Float,             recipeCalories);
+        recipeRequest.input('instruction',       sql.VarChar(1000),     instructionString);
+        recipeRequest.input('prep_time_minutes', sql.Int,               prepTime);
+        recipeRequest.input('cook_time_minutes', sql.Int,               cookTime);
+        recipeRequest.input('created_at',        sql.DateTime2,         new Date());
 
-      // Insert into DB
-      const reqDB = new sql.Request();
-      const newId = uuidv4();
-      idList.push(newId);
+        await recipeRequest.query(`
+            INSERT INTO NutriFit.recipes
+            (recipe_id, author_id, image_url, title, description,
+                serving_size, calories, instruction,
+                prep_time_minutes, cook_time_minutes, created_at)
+            VALUES
+            (@recipe_id, @author_id, @image_url, @title, @description,
+                @serving_size, @calories, @instruction,
+                @prep_time_minutes, @cook_time_minutes, @created_at)
+        `);
 
-      reqDB.input('recipe_id', sql.UniqueIdentifier, newId);
-      reqDB.input('author_id', sql.UniqueIdentifier, 'fatSecretId');
-      reqDB.input('image_url', sql.VarChar(1000), recipe.recipe_images?.recipe_image?.[0] || null);
-      reqDB.input('title', sql.VarChar(255), recipe.recipe_name);
-      reqDB.input('description', sql.VarChar(255), recipe.recipe_description || null);
-      reqDB.input('serving_size', sql.Int, Number(recipe.number_of_servings) || null);
-      reqDB.input('calories', sql.Float, Number(recipe.serving_sizes?.serving?.calories || 0) * Number(recipe.number_of_servings || 1));
-      reqDB.input('instruction', sql.VarChar(1000), instructionString);
-      reqDB.input('prep_time_minutes', sql.Int, Number(recipe.preparation_time_min) || null);
-      reqDB.input('cook_time_minutes', sql.Int, Number(recipe.cooking_time_min) || null);
-      reqDB.input('created_at', sql.DateTime2, new Date());
+        // Grab the ingredients list
+        const ingList = recipe.ingredients?.ingredient || [];
+        if(!Array.isArray(ingList) || ingList.length === 0) {
+            throw new Error("Missing or invalid ingredients list");
+        }
 
-      const insertQuery = `INSERT INTO NutriFit.recipes
-        (recipe_id, author_id, image_url, title, description,
-         calories, instruction, prep_time_minutes,
-         cook_time_minutes, created_at)
-       VALUES
-        (@recipe_id, @author_id, @image_url, @title, @description,
-         @calories, @instruction, @prep_time_minutes,
-         @cook_time_minutes, @created_at)`;
+        // Loop through ingList and get recipe details 
+        for(const ing of ingList) {
+            const {
+                food_name: name,
+                number_of_units,
+                measurement_description: unit,
+                food_id,                    // optional external ref
+                serving_id
+            } = ing;   
+            // console.log("Food Name " + name);
+            // console.log("Food ID " + food_id);
+            // console.log("Serving ID " + serving_id);
 
-      await reqDB.query(insertQuery);
+            const quantity = Number(number_of_units);
+            if(isNaN(quantity)) {
+                throw new Error(`Invalid quantity of ingredient "${name}"`)
+            }
+
+            // Check if ingredient already exists
+            // TODO: Add serving type, right now it's just if the ingredient name exists
+            const findReq = new sql.Request(transaction);
+            findReq.input('name', sql.VarChar(255), name);
+            const { recordset: found} = await findReq.query('SELECT food_item_id from NutriFit.food_items WHERE name = @name');
+
+            let foodItemId;
+            if(found.length) {
+                foodItemId = found[0].food_item_id;
+            } else {
+                // If not found, find the details then add to database
+                foodItemId = uuidv4();
+                const ingredientDetails = await getIngredientDetails(food_id, serving_id);
+                console.log(ingredientDetails);
+
+                const ingredientRequest = new sql.Request(transaction);
+                ingredientRequest.input('food_item_id', sql.UniqueIdentifier, foodItemId);
+                ingredientRequest.input('name', sql.VarChar(255), ingredientDetails.foodName);
+                ingredientRequest.input('calories', sql.Float, Number(ingredientDetails.calories));
+                ingredientRequest.input('protein', sql.Float, Number(ingredientDetails.protein));
+                ingredientRequest.input('carbohydrates', sql.Float, Number(ingredientDetails.carbohydrates));
+                ingredientRequest.input('fat', sql.Float, Number(ingredientDetails.fat));
+
+                await ingredientRequest.query(`
+                    INSERT INTO NutriFit.food_items
+                        (food_item_id, name, calories, protein, carbohydrate, fat)
+                    VALUES
+                        (@food_item_id, @name, @calories, @protein, @carbohydrates, @fat)
+                `);
+            }
+            
+            // Create recipe_ingredients table
+            const recipeIngredientsRequest = new sql.Request(transaction);
+            recipeIngredientsRequest.input('recipe_id', sql.UniqueIdentifier, newRecipeId);
+            recipeIngredientsRequest.input('food_item_id', sql.UniqueIdentifier, foodItemId);
+            recipeIngredientsRequest.input('quantity', sql.Float, quantity);
+            recipeIngredientsRequest.input('unit', sql.VarChar(50), unit);
+            await recipeIngredientsRequest.query(`
+                INSERT INTO [NutriFit].[recipe_ingredients]
+                    (recipe_id, food_item_id, quantity, unit)
+                VALUES
+                    (@recipe_id, @food_item_id, @quantity, @unit)
+                `)
+        }
+
+        await transaction.commit();
+        return res.json({ body:'Successfuly created recipe'});
+    } catch(err) {
+        // If there is a transcation, and there was an error. Rollback all the changes
+        if (transaction) {
+            await transaction.rollback();
+        }
+        console.error(err);
+        return res.status(500).json({ error: err.message || 'Server Error'});
+    } finally {
+        pool.close();
     }
-
-    res.json({ insertedIds: idList });
-  } catch (error) {
-    console.error('Error in addRecipe:', error);
-    res.status(500).json({ error: error.message });
-  }
 }
 
+export async function getRecipeDetails(req, res) {
+    try {
+        const recipeId = req.body.recipe_id;
+        const url = 'https://platform.fatsecret.com/rest/food/v2?format=json&food_id=' + String(recipeId);
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${process.env.FATSECRET_ACCESS_TOKEN}`,
+                'Accept': 'application/json'
+            }
+        });
+
+        if(!response) {
+            throw new Error("GG");
+        }
+        const data = await response.json()
+        console.log(data);
+        return data;
+    } catch(err) {
+        console.log(err);
+    }
+}
+
+// Don't use, just do it manually
+export async function batchAddRecipe(req, res) {
+    try {
+        const numberOfRecipes = Number(req.body.recipes.max_results);
+        // for(let i = 0; i < numberOfRecipes; i++) {
+        for(let i = 0 ; i < 1; i++) {
+            const tempRecipe = req.body.recipes.recipe[i];
+            const tempRecipeId = tempRecipe.recipe_id;
+
+            const recipe = await getRecipeDetails(tempRecipeId);
+            if(!recipe) {
+                continue;
+            }
+            addRecipe(recipe);
+        }
+    } catch(err) {
+        console.log("Err");
+    }
+}
