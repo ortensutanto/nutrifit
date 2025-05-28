@@ -255,7 +255,7 @@ export async function getUserData(req, res) {
         await sql.connect(config);
         const request = new sql.Request();
         decodedToken = await authentication(req);
-        const userId = decoded.sub;
+        const userId = decodedToken.sub; // decodedToken -> decoded
         request.input('user_id', sql.UniqueIdentifier, userId);
         const query = 'SELECT * FROM [NutriFit].[user] WHERE user_id = @user_id';
         await request.query(query);

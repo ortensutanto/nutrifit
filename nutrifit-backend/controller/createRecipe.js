@@ -265,7 +265,7 @@ export async function addRecipe(req, res) {
     }
 }
 
-export async function getRecipeDetails(req, res) {
+export async function getRecipeDetailsFatSecret(req, res) {
     try {
         const recipeId = req.body.recipe_id;
         const url = 'https://platform.fatsecret.com/rest/food/v2?format=json&food_id=' + String(recipeId);

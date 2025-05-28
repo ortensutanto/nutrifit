@@ -1,6 +1,7 @@
 // Routes (Masukin dari folder routes)
 import users from "./routes/users.js"
 import recipes from "./routes/recipes.js"
+import addRecipes from "./routes/addrecipes.js"
 import reviews from "./routes/reviews.js"
 
 import express from "express"
@@ -22,6 +23,7 @@ const sql = require('mssql/msnodesqlv8');
 app.use("/users", users);
 app.use("/recipes", recipes);
 app.use("/reviews", reviews);
+app.use("/addRecipe", addRecipes);
 
 // Status endpoint
 app.get("/status", (request, response) => {
