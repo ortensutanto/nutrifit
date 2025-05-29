@@ -3,6 +3,7 @@ import users from "./routes/users.js"
 import recipes from "./routes/recipes.js"
 import addRecipes from "./routes/addrecipes.js"
 import reviews from "./routes/reviews.js"
+import favorites from "./routes/favorites.js"
 
 import express from "express"
 import cors from "cors"
@@ -24,6 +25,7 @@ app.use("/users", users);
 app.use("/recipes", recipes);
 app.use("/reviews", reviews);
 app.use("/addRecipe", addRecipes);
+app.use("/favorites", favorites);
 
 // Status endpoint
 app.get("/status", (request, response) => {

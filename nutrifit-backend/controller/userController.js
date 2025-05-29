@@ -59,6 +59,7 @@ export async function register(req, res) {
         return res.status(201).json('Account sucessfully registed');
     } catch(err) {
         // return res.status(500).json({error: err.message, stack: err.stack});
+        console.log(err);
         return res.status(500).json("Unexpected error creating account");
     } finally {
         sql.close();
@@ -112,7 +113,8 @@ export async function login(req, res) {
     }
 }
 
-async function authentication(req) {
+// Cek header punya bearer token ato ngga
+export async function authentication(req) {
     const authHeader = req.headers.authorization;
     // Uses Bearer Schema (Bearer )
     if(!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -258,9 +260,13 @@ export async function getUserData(req, res) {
         const userId = decodedToken.sub; // decodedToken -> decoded
         request.input('user_id', sql.UniqueIdentifier, userId);
         const query = 'SELECT * FROM [NutriFit].[user] WHERE user_id = @user_id';
-        await request.query(query);
+        const result = await request.query(query);
 
-        return res.status(200).json({ data:request.recordset });
+        if(!result.recordset || result.recordset.length === 0) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
+        return res.status(200).json({ data:result.recordset });
      } catch(err) {
         console.error(err);
         return res.status(500).json({error: 'Unexpected error occured'});
@@ -268,3 +274,4 @@ export async function getUserData(req, res) {
         sql.close();
      }
 }
+
