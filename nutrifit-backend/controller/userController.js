@@ -49,14 +49,15 @@ export async function register(req, res) {
         request.input('gender', sql.TinyInt, req.body.gender);
         request.input('weight', sql.Float, req.body.weight);
         request.input('height', sql.Float, req.body.height);
+        request.input('activity_level', sql.Int, req.body.activity_level);
         const insertQuery = `
         INSERT INTO [NutriFit].[user]
-            (user_id, email, password, display_name, date_joined, age, gender, weight, height)
+            (user_id, email, password, display_name, date_joined, age, gender, weight, height, activity_level)
         VALUES
-            (@user_id, @email, @password, @display_name, @date_joined, @age, @gender, @weight, @height)
+            (@user_id, @email, @password, @display_name, @date_joined, @age, @gender, @weight, @height, @activity_level)
         `;
         const response = await request.query(insertQuery);
-        return res.status(201).json('Account sucessfully registed');
+        return res.status(201).json('Account sucessfully registered');
     } catch(err) {
         // return res.status(500).json({error: err.message, stack: err.stack});
         console.log(err);
