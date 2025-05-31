@@ -4,7 +4,6 @@ const require = createRequire(import.meta.url);
 const sql = require('mssql/msnodesqlv8');
 import { authentication } from "./userController.js";
 import { v4 as uuidv4 }from "uuid"
-import { UniqueIdentifier } from "msnodesqlv8";
 
 const config = {
     server: ".",
@@ -190,3 +189,43 @@ export async function copyPreviousGoal(req, res) {
     }
 }
 
+export async function getGoalInfo(req, res) {
+    try {
+        await sql.connect(config);
+
+        // Authenticate user and get user details
+        const decodedToken = await authentication(req);
+        const userId = decodedToken.sub;
+
+        const userRequest = new sql.Request();
+        userRequest.input('user_id', sql.UniqueIdentifier, userId);
+        const userQuery = 'SELECT user_id, age, gender, weight, height, activity_level FROM [NutriFit].[user] WHERE user_id = @user_id';
+        const userResult = await userRequest.query(userQuery);
+
+        if (!userResult.recordset || userResult.recordset.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+
+        const goalRequest = new sql.Request();
+        goalRequest.input('user_id', sql.UniqueIdentifier, userId);
+        goalRequest.input('start_date', sql.Date, today);
+        const goalQuery = `
+            SELECT goal_id from [NutriFit].[goals]
+            WHERE user_id=@user_id AND start_date=@start_date
+        `
+        const goalResult = await goalRequest.query(goalQuery);
+
+        if (!goalResult.recordset || goalResult.recordset.length === 0) {
+            return res.status(404).json({ error: 'No goals found' });
+        }
+
+        return res.status(200).json(goalResult.recordset[0]);
+    } catch(err) {
+        console.log(err);
+        return res.status(500).json({error: "Unexpected error has occured"});
+    } finally {
+        sql.close();
+    }
+}
