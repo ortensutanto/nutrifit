@@ -1,28 +1,50 @@
 // app/login.tsx
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-   ScrollView,
-   StyleSheet,
-   Text,
-   TextInput,
-   TouchableOpacity,
-   View
-} from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
-   const [username, setUsername] = useState('');
+   const [email, setEmail] = useState('');
    const [password, setPassword] = useState('');
    const router = useRouter();
+
+   const handleLogin = async () => {
+      if (!email || !password) {
+         Alert.alert('Validation error', 'Please enter both email and password');
+         return;
+      }
+
+      try {
+         const response = await fetch('http://localhost:3000/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+         });
+
+         const data = await response.json();
+
+         if (response.ok) {
+            Alert.alert("Login success", "Welcome!");
+            router.replace('/(tabs)');
+         } else {
+            Alert.alert('Login Failed', data.error || 'Unknown error');
+         }
+      } catch (err) {
+         console.log(err);
+         Alert.alert('Error', 'Cannot connect to server')
+      }
+   };
 
    return (
       <ScrollView contentContainerStyle={styles.container}>
          <Text style={styles.title}>Sign In</Text>
 
          <TextInput
-            value={username}
-            onChangeText={setUsername}
-            placeholder="Username"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
             style={styles.input}
          />
 
@@ -37,18 +59,18 @@ export default function LoginScreen() {
          <View style={styles.row}>
             <TouchableOpacity
                style={styles.button}
-               onPress={() => router.replace('/(tabs)')}
+               onPress={handleLogin}
             >
                <Text style={styles.buttonText}>Done</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => {/* TODO: forgot password */}}>
+            <TouchableOpacity onPress={() => {/* TODO: forgot password */ }}>
                <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
          </View>
 
          <View style={styles.signupRow}>
-            <Text style={styles.signupPrompt}>Don't have any account? </Text>
+            <Text style={styles.signupPrompt}>Don&apos;t have any account? </Text>
             <TouchableOpacity onPress={() => router.push('/register')}>
                <Text style={styles.signupLink}>Sign Up</Text>
             </TouchableOpacity>
