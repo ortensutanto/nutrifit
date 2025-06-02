@@ -1,103 +1,119 @@
-import {createRequire} from "module";
+import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-// Import sql
-const sql = require('mssql/msnodesqlv8');
+// Import mysql
+const mysql = require('mysql2');
 
 import argon2 from "argon2"
 import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
 import { json } from "express"
-import { v4 as uuidv4 }from "uuid"
+import { v4 as uuidv4 } from "uuid"
 
-const config = {
-    server: ".",
-    database: "NutriFit",
-    options: {
-        trustedConnection: true,
-        trustServerCertificate: true,
-    },
-    driver: "msnodesqlv8"
-};
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
 
 export async function register(req, res) {
     try {
-        await sql.connect(config);        
+        const connection = await mysql.createConnection(connectionString);
+        // Log registration attempt
+        console.log('Registration attempt:', {
+            email: req.body.email,
+            display_name: req.body.display_name,
+            timestamp: new Date().toISOString()
+        });
+        // Check if email already exists
+        const [emailResult] = await connection.promise().query(
+            'SELECT 1 FROM NutriFit.user WHERE email = ?',
+            [req.body.email]
+        );
 
-        const emailRequest = new sql.Request();
-        emailRequest.input('email', sql.VarChar(255), req.body.email);
-        
-        const emailResult = await emailRequest.query(`
-            SELECT 1 
-            FROM [NutriFit].[user]
-            WHERE email = @email
-        `);
+        if (emailResult.length > 0) {
+            return res.status(400).json({ error: 'Email already registered' });
+        }
 
-        if(emailResult.recordset.length > 0) {
-            throw new Error('Account already registered');
+        // Validate required fields
+        if (!req.body.email || !req.body.password || !req.body.display_name) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Validate data types and ranges
+        if (
+            typeof req.body.age !== 'number' || req.body.age <= 0 ||
+            typeof req.body.gender !== 'number' || ![0, 1].includes(req.body.gender) ||
+            typeof req.body.weight !== 'number' || req.body.weight <= 0 ||
+            typeof req.body.height !== 'number' || req.body.height <= 0 ||
+            typeof req.body.activity_level !== 'number' || ![1, 2, 3, 4, 5].includes(req.body.activity_level)
+        ) {
+            return res.status(400).json({ error: 'Invalid user data' });
         }
 
         const hashedPassword = await argon2.hash(req.body.password);
-
-        const request = new sql.Request();
         const newUserId = uuidv4();
-        request.input('user_id', sql.UniqueIdentifier, newUserId);
-        request.input('email', sql.VarChar(255), req.body.email);
-        request.input('password', sql.VarChar(255), hashedPassword);
-        request.input('display_name', sql.VarChar(255), req.body.display_name);
-        request.input('date_joined', sql.Date, new Date());
-        request.input('age', sql.Int, req.body.age);
-        request.input('gender', sql.TinyInt, req.body.gender);
-        request.input('weight', sql.Float, req.body.weight);
-        request.input('height', sql.Float, req.body.height);
-        request.input('activity_level', sql.Int, req.body.activity_level);
-        const insertQuery = `
-        INSERT INTO [NutriFit].[user]
-            (user_id, email, password, display_name, date_joined, age, gender, weight, height, activity_level)
-        VALUES
-            (@user_id, @email, @password, @display_name, @date_joined, @age, @gender, @weight, @height, @activity_level)
-        `;
-        const response = await request.query(insertQuery);
-        return res.status(201).json('Account sucessfully registered');
-    } catch(err) {
-        // return res.status(500).json({error: err.message, stack: err.stack});
-        console.log(err);
-        return res.status(500).json("Unexpected error creating account");
-    } finally {
-        sql.close();
+
+        // Insert query
+        await connection.promise().query(
+            `INSERT INTO NutriFit.user (
+                user_id, 
+                email, 
+                password, 
+                display_name, 
+                date_joined, 
+                age, 
+                gender, 
+                weight, 
+                height, 
+                activity_level
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                newUserId,
+                req.body.email,
+                hashedPassword,
+                req.body.display_name,
+                new Date(),
+                req.body.age,
+                req.body.gender,
+                req.body.weight,
+                req.body.height,
+                req.body.activity_level
+            ]
+        );
+
+        return res.status(201).json({
+            message: 'Account successfully registered',
+            userId: newUserId
+        });
+    } catch (err) {
+        console.error('Registration error:', err);
+        return res.status(500).json({ error: 'Unexpected error creating account' });
     }
 }
 
 export async function getUser(req, res) {
     try {
-        const query = "SELECT TOP 10 * FROM [NutriFit].[user]"; // Correct table name format
-        await sql.connect(config);
-        const result = await sql.query(query);
-        return res.json(result.recordset);
-    } catch(err) {
+        const connection = await mysql.createConnection(connectionString);
+        const [users] = await connection.promise().query('SELECT * FROM NutriFit.user LIMIT 10');
+        return res.json(users);
+    } catch (err) {
         console.error(err);
-        return res.status(500).json({error: err.message});
-    } finally {
-        sql.close();
+        return res.status(500).json({ error: err.message });
     }
 }
 
 export async function login(req, res) {
     try {
-        await sql.connect(config);
-        const request = new sql.Request()
-        request.input('email', sql.VarChar(255), req.body.email);
+        const connection = await mysql.createConnection(connectionString);
+        const [users] = await connection.promise().query(
+            'SELECT user_id, password, display_name FROM NutriFit.user WHERE email = ?',
+            [req.body.email]
+        );
 
-        const query = 'SELECT user_id, password, display_name FROM [NutriFit].[user] WHERE email = @email'
-        const { recordset } = await request.query(query);
-
-        if(recordset.length == 0) {
-            return res.status(401).json({ error: 'Invalid credentials'});
+        if (users.length === 0) {
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const user = recordset[0];
+        const user = users[0];
         const passwordMatch = await argon2.verify(user.password, req.body.password);
-        if(!passwordMatch) {
-            return res.status(401).json({ error: 'Invalid credentials'});
+        if (!passwordMatch) {
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const payload = { sub: user.user_id, name: user.display_name };
@@ -106,11 +122,9 @@ export async function login(req, res) {
             process.env.JWT_SECRET,
         );
         return res.json({ token });
-    } catch(err) {
-        // console.error(err);
-        return res.status(500).json({ error: "Unexpected error when logging in"});
-    } finally {
-        sql.close();
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Unexpected error when logging in" });
     }
 }
 
@@ -118,161 +132,145 @@ export async function login(req, res) {
 export async function authentication(req) {
     const authHeader = req.headers.authorization;
     // Uses Bearer Schema (Bearer )
-    if(!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
         throw new Error('Unathorized: Token not provided');
     }
     const jwtoken = authHeader.split(' ')[1]; // (Bearer token) we grab the token
-    if(!jwtoken) {
+    if (!jwtoken) {
         throw new Error('Unathorized: Token not found');
     }
     try {
         const decodedToken = jsonwebtoken.verify(jwtoken, process.env.JWT_SECRET);
         return decodedToken;
-    } catch(err) {
+    } catch (err) {
         throw new Error('Unauthorized: Token invalid');
     }
 }
 
 export async function editWeight(req, res) {
     try {
-        await sql.connect(config);
-        const request = new sql.Request();
-        request.input('weight', sql.Float, req.body.weight);
-
+        const connection = await mysql.createConnection(connectionString);
         const decodedToken = await authentication(req);
-        const userId = decodedToken.sub; // For some reason it's called sub
-        request.input('user_id', sql.UniqueIdentifier, userId);
-        const query = 'UPDATE [NutriFit].[user] SET weight = @weight WHERE user_id=@user_id';
-        await request.query(query);
+        const userId = decodedToken.sub;
 
-        return res.status(200).json({ message: 'Weight updated successfuly' })
-    } catch(err) {
+        await connection.promise().query(
+            'UPDATE NutriFit.user SET weight = ? WHERE user_id = ?',
+            [req.body.weight, userId]
+        );
+
+        return res.status(200).json({ message: 'Weight updated successfully' });
+    } catch (err) {
         console.error(err);
-        if(err.message.startsWith('Unauthorized')) {
+        if (err.message.startsWith('Unauthorized')) {
             return res.status(401).json({ error: err.message });
         }
-        return res.status(500).json({error: 'Unexpected error occured'});
-    } finally {
-        sql.close();
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
 
 export async function editAge(req, res) {
     try {
-        await sql.connect(config);
-        const request = new sql.Request();
-        request.input('age', sql.Int, req.body.age);
-
+        const connection = await mysql.createConnection(connectionString);
         const decodedToken = await authentication(req);
-        const userId = decodedToken.sub; // For some reason it's called sub
-        request.input('user_id', sql.UniqueIdentifier, userId);
-        const query = 'UPDATE [NutriFit].[user] SET age = @age WHERE user_id=@user_id';
-        await request.query(query);
+        const userId = decodedToken.sub;
 
-        return res.status(200).json({ message: 'Age updated successfuly' })
-    } catch(err) {
+        await connection.promise().query(
+            'UPDATE NutriFit.user SET age = ? WHERE user_id = ?',
+            [req.body.age, userId]
+        );
+
+        return res.status(200).json({ message: 'Age updated successfully' });
+    } catch (err) {
         console.error(err);
-        if(err.message.startsWith('Unauthorized')) {
+        if (err.message.startsWith('Unauthorized')) {
             return res.status(401).json({ error: err.message });
         }
-        return res.status(500).json({error: 'Unexpected error occured'});
-    } finally {
-        sql.close();
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
 
 export async function editGender(req, res) {
     try {
-        await sql.connect(config);
-        const request = new sql.Request();
-        request.input('gender', sql.TinyInt, req.body.gender);
-
+        const connection = await mysql.createConnection(connectionString);
         const decodedToken = await authentication(req);
-        const userId = decodedToken.sub; // For some reason it's called sub
-        request.input('user_id', sql.UniqueIdentifier, userId);
-        const query = 'UPDATE [NutriFit].[user] SET gender = @gender WHERE user_id=@user_id';
-        await request.query(query);
+        const userId = decodedToken.sub;
 
-        return res.status(200).json({ message: 'Gender updated successfuly' })
-    } catch(err) {
+        await connection.promise().query(
+            'UPDATE NutriFit.user SET gender = ? WHERE user_id = ?',
+            [req.body.gender, userId]
+        );
+
+        return res.status(200).json({ message: 'Gender updated successfully' });
+    } catch (err) {
         console.error(err);
-        if(err.message.startsWith('Unauthorized')) {
+        if (err.message.startsWith('Unauthorized')) {
             return res.status(401).json({ error: err.message });
         }
-        return res.status(500).json({error: 'Unexpected error occured'});
-    } finally {
-        sql.close();
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
 
 export async function editHeight(req, res) {
     try {
-        await sql.connect(config);
-        const request = new sql.Request();
-        request.input('height', sql.Float, req.body.height);
-
+        const connection = await mysql.createConnection(connectionString);
         const decodedToken = await authentication(req);
-        const userId = decodedToken.sub; // For some reason it's called sub
-        request.input('user_id', sql.UniqueIdentifier, userId);
-        const query = 'UPDATE [NutriFit].[user] SET height = @height WHERE user_id=@user_id';
-        await request.query(query);
+        const userId = decodedToken.sub;
 
-        return res.status(200).json({ message: 'Height updated successfuly' })
-    } catch(err) {
+        await connection.promise().query(
+            'UPDATE NutriFit.user SET height = ? WHERE user_id = ?',
+            [req.body.height, userId]
+        );
+
+        return res.status(200).json({ message: 'Height updated successfully' });
+    } catch (err) {
         console.error(err);
-        if(err.message.startsWith('Unauthorized')) {
+        if (err.message.startsWith('Unauthorized')) {
             return res.status(401).json({ error: err.message });
         }
-        return res.status(500).json({error: 'Unexpected error occured'});
-    } finally {
-        sql.close();
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
 
 export async function editDisplayName(req, res) {
     try {
-        await sql.connect(config);
-        const request = new sql.Request();
-        request.input('display_name', sql.Float, req.body.display_name);
-
+        const connection = await mysql.createConnection(connectionString);
         const decodedToken = await authentication(req);
-        const userId = decodedToken.sub; // For some reason it's called sub
-        request.input('user_id', sql.UniqueIdentifier, userId);
-        const query = 'UPDATE [NutriFit].[user] SET display_name = @display_name WHERE user_id=@user_id';
-        await request.query(query);
+        const userId = decodedToken.sub;
 
-        return res.status(200).json({ message: 'Display Name updated successfuly' })
-    } catch(err) {
+        await connection.promise().query(
+            'UPDATE NutriFit.user SET display_name = ? WHERE user_id = ?',
+            [req.body.display_name, userId]
+        );
+
+        return res.status(200).json({ message: 'Display Name updated successfully' });
+    } catch (err) {
         console.error(err);
-        if(err.message.startsWith('Unauthorized')) {
+        if (err.message.startsWith('Unauthorized')) {
             return res.status(401).json({ error: err.message });
         }
-        return res.status(500).json({error: 'Unexpected error occured'});
-    } finally {
-        sql.close();
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
 
 export async function getUserData(req, res) {
-     try {
-        await sql.connect(config);
-        const request = new sql.Request();
-        decodedToken = await authentication(req);
-        const userId = decodedToken.sub; // decodedToken -> decoded
-        request.input('user_id', sql.UniqueIdentifier, userId);
-        const query = 'SELECT * FROM [NutriFit].[user] WHERE user_id = @user_id';
-        const result = await request.query(query);
+    try {
+        const connection = await mysql.createConnection(connectionString);
+        const decodedToken = await authentication(req);
+        const userId = decodedToken.sub;
 
-        if(!result.recordset || result.recordset.length === 0) {
+        const [users] = await connection.promise().query(
+            'SELECT * FROM NutriFit.user WHERE user_id = ?',
+            [userId]
+        );
+
+        if (!users || users.length === 0) {
             return res.status(400).json({ error: 'User not found' });
         }
 
-        return res.status(200).json({ data:result.recordset });
-     } catch(err) {
+        return res.status(200).json({ data: users });
+    } catch (err) {
         console.error(err);
-        return res.status(500).json({error: 'Unexpected error occured'});
-     } finally {
-        sql.close();
-     }
+        return res.status(500).json({ error: 'Unexpected error occurred' });
+    }
 }
 

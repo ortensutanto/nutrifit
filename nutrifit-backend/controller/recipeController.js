@@ -1,74 +1,79 @@
-import {createRequire} from "module";
+import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-// Import sql
-const sql = require('mssql/msnodesqlv8');
+// Import mysql
+const mysql = require('mysql2');
 import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
 
-const config = {
-    server: ".",
-    database: "NutriFit",
-    options: {
-        trustedConnection: true,
-        trustServerCertificate: true,
-    },
-    driver: "msnodesqlv8"
-};
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
 
-export async function getRecipeDetails(req, res) {
+export async function getRecipes(req, res) {
     try {
-        const recipeId = req.query.recipe_id;
-        if(!recipeId) {
-            return res.status(400).json({ error: "Missing recipe_id in query"});
+        const connection = await mysql.createConnection(connectionString);
+        const [recipes] = await connection.promise().query(
+            `SELECT r.*, fi.name as ingredient_name 
+            FROM NutriFit.recipes r
+            LEFT JOIN NutriFit.recipe_ingredients ri ON r.recipe_id = ri.recipe_id
+            LEFT JOIN NutriFit.food_items fi ON ri.food_item_id = fi.food_item_id`
+        );
+
+        // Group ingredients by recipe
+        const recipesMap = new Map();
+        recipes.forEach(row => {
+            if (!recipesMap.has(row.recipe_id)) {
+                recipesMap.set(row.recipe_id, {
+                    ...row,
+                    ingredients: []
+                });
+            }
+            if (row.ingredient_name) {
+                recipesMap.get(row.recipe_id).ingredients.push({
+                    name: row.ingredient_name
+                });
+            }
+        });
+
+        return res.json(Array.from(recipesMap.values()));
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Unexpected error occurred' });
+    }
+}
+
+export async function getRecipeById(req, res) {
+    try {
+        const connection = await mysql.createConnection(connectionString);
+        const [recipes] = await connection.promise().query(
+            `SELECT r.*, fi.name as ingredient_name, ri.quantity, ri.unit
+            FROM NutriFit.recipes r
+            LEFT JOIN NutriFit.recipe_ingredients ri ON r.recipe_id = ri.recipe_id
+            LEFT JOIN NutriFit.food_items fi ON ri.food_item_id = fi.food_item_id
+            WHERE r.recipe_id = ?`,
+            [req.params.id]
+        );
+
+        if (!recipes || recipes.length === 0) {
+            return res.status(404).json({ error: 'Recipe not found' });
         }
 
-        await sql.connect(config);
-
-        const request = new sql.Request();
-        request.input('recipe_id', recipeId);
-
-        const recipeQuery = `
-            SELECT r.recipe_id, r.title, r.description, r.image_url, r.serving_size, r.calories, r.instruction,
-            r.prep_time_minutes, r.cook_time_minutes, r.created_at, fi.food_item_id, fi.name
-            FROM [NutriFit].[Recipes] r
-            LEFT JOIN [NutriFit].[recipe_ingredients] ri ON r.recipe_id = ri.recipe_id
-            LEFT JOIN [NutriFit].[food_items] fi ON ri.food_item_id = fi.food_item_id
-            WHERE r.recipe_id =  @recipe_id
-        `;
-        const result = await request.query(recipeQuery);
-        const rows = result.recordset;
-
-        if(rows.length === 0) {
-            return res.status(404).json({ error: 'Recipe not found'});
-        }
-
-        // Query kasih info recipe berulang kali
+        // Transform the result to include ingredients array
         const recipe = {
-            recipe_id: rows[0].recipe_id,
-            title: rows[0].title,
-            description: rows[0].description,
-            image_url: rows[0].image_url,
-            serving_size: rows[0].serving_size,
-            calories: rows[0].calories,
-            instruction: rows[0].instruction,
-            prep_time_minutes: rows[0].prep_time_minutes,
-            cook_time_minutes: rows[0].cook_time_minutes,
-            created_at: rows[0].created_at,
-            ingredients: []
+            ...recipes[0],
+            ingredients: recipes.map(row => ({
+                name: row.ingredient_name,
+                quantity: row.quantity,
+                unit: row.unit
+            })).filter(ing => ing.name) // Remove null ingredients
         };
 
-        for(const row of rows) {
-            recipe.ingredients.push({
-                food_item_id: row.food_item_id,
-                name: row.name
-            })
-        }
+        // Remove ingredient fields from main object
+        delete recipe.ingredient_name;
+        delete recipe.quantity;
+        delete recipe.unit;
 
-        return res.status(200).json(recipe);
-    } catch(err) {
+        return res.json(recipe);
+    } catch (err) {
         console.error(err);
-        return res.status(500).json({error: 'Unexpected error occured'});
-    } finally {
-        sql.close();
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
