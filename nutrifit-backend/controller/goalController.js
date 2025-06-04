@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from "uuid"
 import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 function mifflinStJeor(weight, height, age, gender) {
     // gender: 0 (Male), 1 (Female)
@@ -22,19 +23,76 @@ function mifflinStJeor(weight, height, age, gender) {
 export async function calculateGoals(req, res) {
     try {
         const connection = await mysql.createConnection(connectionString);
+
+        const decodedToken = await authentication(req);
+
+        // Verify user exists
+        const userId = decodedToken.sub;
+        const userVerification = await connection.promise().query(
+            'SELECT user_id, age, gender, weight, height, activity_level FROM NutriFit.user WHERE user_id = ?',
+            [userId]
+        );
+        if (!userVerification[0] || userVerification[0].length === 0) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
+        const userData = userVerification[0][0];
+
+        const { age, gender, weight, height, activity_level} = userData;
+
+        const goalType = Number(req.body.goal_type);
+        const targetWeightChange = Number(req.body.target_weight_change);
+        const targetTimeWeeks = Number(req.body.target_time_weeks);
+
+        let calorieDeficit = 0;
+        if (goalType === 1 || goalType === 2) {
+            // 0.45 kg (1 lb) is approx. 3500 calories
+            calorieDeficit = (((targetWeightChange / 0.45) * 3500) / (targetTimeWeeks * 7));
+        }
+
+        // Calculate Total Daily Energy Expenditure (TDEE)
+        const bmr = mifflinStJeor(weight, height, age, gender);
+        let targetCalories = bmr;
+
+        const activityMultipliers = [
+            1.2,    // 0: Sedentary
+            1.375,  // 1: Light
+            1.465,  // 2: Moderate (Fixed typo: 1,465 -> 1.465)
+            1.55,   // 3: Active (Standardized value)
+            1.725,  // 4: Very Active
+            1.9     // 5: Extra Active
+        ];
+        targetCalories *= activityMultipliers[activity_level] || 1.2;
+
+        // Adjust calories based on goal type
+        if (goalType === 1) { // Lose weight
+            targetCalories -= calorieDeficit;
+        } else if (goalType === 2) { // Gain weight
+            targetCalories += calorieDeficit;
+        }
+
+        // Define goal start and end dates
+        const startDate = new Date().toISOString().split('T')[0]; // Today 'YYYY-MM-DD'
+        const endDate = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]; // Tomorrow 'YYYY-MM-DD'
+        
+        // Delete duplicate goals jika ada
+        await connection.promise().query(
+            `
+            DELETE FROM Nutrifit.goals WHERE user_id = ? AND start_date = ?
+            `, [ userId, startDate]
+        )
+
         await connection.promise().query(
             `INSERT INTO NutriFit.goals 
-                (goal_id, user_id, target_calories, target_protein, target_carbs, target_fat, start_date, end_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                (goal_id, user_id, goal_type, target_calories_per_day, start_date, end_date)
+            VALUES (?, ?, ?, ?, ?, ?)`,
             [
                 uuidv4(),
-                req.body.user_id,
-                req.body.target_calories,
-                req.body.target_protein,
-                req.body.target_carbs,
-                req.body.target_fat,
-                req.body.start_date,
-                req.body.end_date
+                userId,
+                req.body.goal_type,
+                targetCalories,
+                startDate,
+                endDate
             ]
         );
 
@@ -67,7 +125,6 @@ export async function copyPreviousGoal(req, res) {
                 req.body.end_date
             ]
         );
-
         return res.status(201).json({ message: 'Previous goal successfully copied to today' });
     } catch (err) {
         console.error(err);

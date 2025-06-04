@@ -6,6 +6,8 @@ import reviews from "./routes/reviews.js"
 import favorites from "./routes/favorites.js"
 import goals from "./routes/goals.js"
 import nutrition from "./routes/nutrition.js"
+import barcode from "./routes/barcode.js"
+import foodSearch from "./routes/foodSearch.js"
 
 import express from "express"
 import cors from "cors"
@@ -30,6 +32,8 @@ app.use("/addRecipe", addRecipes);
 app.use("/favorites", favorites);
 app.use("/goals", goals);
 app.use("/nutrition", nutrition);
+app.use("/barcode", barcode);
+app.use("/foodSearch", foodSearch);
 
 // Status endpoint
 app.get("/status", (request, response) => {
