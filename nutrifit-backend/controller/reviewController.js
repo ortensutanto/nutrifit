@@ -5,8 +5,9 @@ const mysql = require('mysql2');
 import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
 import { v4 as uuidv4 } from "uuid"
+import { authentication } from "./userController.js"
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function getReviews(req, res) {
     try {
@@ -25,6 +26,17 @@ export async function getReviews(req, res) {
 
 export async function addReviews(req, res) {
     try {
+        const decodedToken = await authentication(req);
+        // Verify user exists
+        const userId = decodedToken.sub;
+        const userVerification = await connection.promise().query(
+            'SELECT * FROM NutriFit.users WHERE user_id = ?',
+            [userId]
+        );
+        if (!userVerification[0] || userVerification[0].length === 0) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
         const connection = await mysql.createConnection(connectionString);
         await connection.promise().query(
             `INSERT INTO NutriFit.reviews 
@@ -33,7 +45,7 @@ export async function addReviews(req, res) {
             [
                 uuidv4(),
                 req.body.recipe_id,
-                req.body.user_id,
+                userId,
                 req.body.rating,
                 req.body.comment,
                 new Date()

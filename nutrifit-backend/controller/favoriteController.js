@@ -7,7 +7,7 @@ import dotenv from "dotenv/config"
 import { v4 as uuidv4 } from "uuid"
 import { authentication } from "./userController.js";
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function favoriteRecipe(req, res) {
     try {
@@ -18,7 +18,7 @@ export async function favoriteRecipe(req, res) {
         // Verify user exists
         const userId = decodedToken.sub;
         const userVerification = await connection.promise().query(
-            'SELECT * FROM NutriFit.users WHERE user_id = ?',
+            'SELECT * FROM NutriFit.user WHERE user_id = ?',
             [userId]
         );
         if (!userVerification[0] || userVerification[0].length === 0) {
@@ -27,7 +27,7 @@ export async function favoriteRecipe(req, res) {
 
         // Add to favorites
         await connection.promise().query(
-            `INSERT INTO NutriFit.favorites 
+            `INSERT INTO NutriFit.user_favorites 
                 (favorite_id, user_id, recipe_id)
             VALUES (?, ?, ?)`,
             [
@@ -50,7 +50,7 @@ export async function getUserFavorites(req, res) {
 
         const userId = decodedToken.sub;
         const userVerification = await connection.promise().query(
-            'SELECT * FROM NutriFit.users WHERE user_id = ?',
+            'SELECT * FROM NutriFit.user WHERE user_id = ?',
             [userId]
         );
         if (!userVerification[0] || userVerification[0].length === 0) {
@@ -58,7 +58,7 @@ export async function getUserFavorites(req, res) {
         }
 
         const [favorites] = await connection.promise().query(
-            'SELECT recipe_id FROM NutriFit.favorites WHERE user_id = ?',
+            'SELECT recipe_id FROM NutriFit.user_favorites WHERE user_id = ?',
             [userId]
         );
         if (!favorites[0] || favorites[0].length === 0) {
@@ -72,47 +72,11 @@ export async function getUserFavorites(req, res) {
     }
 }
 
-export async function getFavorites(req, res) {
-    try {
-        const connection = await mysql.createConnection(connectionString);
-        const [favorites] = await connection.promise().query(
-            'SELECT * FROM NutriFit.favorites WHERE user_id = ?',
-            [req.body.user_id]
-        );
-
-        return res.status(200).json({ data: favorites });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Unexpected error occurred' });
-    }
-}
-
-export async function addFavorite(req, res) {
-    try {
-        const connection = await mysql.createConnection(connectionString);
-        await connection.promise().query(
-            `INSERT INTO NutriFit.favorites 
-                (favorite_id, user_id, recipe_id)
-            VALUES (?, ?, ?)`,
-            [
-                uuidv4(),
-                req.body.user_id,
-                req.body.recipe_id
-            ]
-        );
-
-        return res.status(201).json({ message: 'Recipe added to favorites successfully' });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Unexpected error occurred' });
-    }
-}
-
 export async function removeFavorite(req, res) {
     try {
         const connection = await mysql.createConnection(connectionString);
         await connection.promise().query(
-            'DELETE FROM NutriFit.favorites WHERE user_id = ? AND recipe_id = ?',
+            'DELETE FROM NutriFit.user_favorites WHERE user_id = ? AND recipe_id = ?',
             [req.body.user_id, req.body.recipe_id]
         );
 

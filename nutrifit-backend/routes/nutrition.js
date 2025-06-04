@@ -1,11 +1,11 @@
 import express from "express"
 const router = express.Router()
 
-import { addNutritionRecipe, addNutritionFoodItem, getNutritionLogs } from "../controller/nutritionController.js"
+import { getNutritionByDate, addNutrition, getNutritionSummary } from "../controller/nutritionController.js"
 
-router.get("/getNutritionLogs", getNutritionLogs);
+router.get("/getNutritionByDate", getNutritionByDate);
+router.get("/getNutritionSummary", getNutritionSummary);
 
-router.post("/addNutritionRecipe", addNutritionRecipe);
-router.post("/addNutritionFoodItem", addNutritionFoodItem);
+router.post("/addNutritionRecipe", addNutrition);
 
 export default router;
