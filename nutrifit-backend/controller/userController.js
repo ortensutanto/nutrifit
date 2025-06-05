@@ -91,7 +91,7 @@ export async function register(req, res) {
 export async function getUser(req, res) {
     try {
         const connection = await mysql.createConnection(connectionString);
-        const [users] = await connection.promise().query('SELECT * FROM NutriFit.user LIMIT 10');
+        const [users] = await connection.promise().query('SELECT email, display_name, age, gender, weight, height, activity_level FROM NutriFit.user LIMIT 10');
         return res.json(users);
     } catch (err) {
         console.error(err);
@@ -258,9 +258,8 @@ export async function getUserData(req, res) {
         const connection = await mysql.createConnection(connectionString);
         const decodedToken = await authentication(req);
         const userId = decodedToken.sub;
-
         const [users] = await connection.promise().query(
-            'SELECT * FROM NutriFit.user WHERE user_id = ?',
+            'SELECT email, display_name, age, gender, weight, height, activity_level FROM NutriFit.user WHERE user_id = ?',
             [userId]
         );
 

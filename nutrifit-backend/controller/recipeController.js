@@ -8,6 +8,24 @@ import dotenv from "dotenv/config"
 // const connectionString = "mysql://root:password@localhost:3306/NutriFit";
 const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
+// Buat menu recipes
+export async function getRecipesMenu(req, res) {
+    const connection = await mysql.createConnection(connectionString);
+    try {
+        const [recipes] = await connection.promise().query(
+            `SELECT recipe_id, image_url, title, calories FROM NutriFit.recipes
+            `
+        );
+
+        return res.status(200).json(recipes);
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({error: err});
+    } finally {
+        connection.close();
+    }
+}
+
 export async function getRecipes(req, res) {
     try {
         const connection = await mysql.createConnection(connectionString);

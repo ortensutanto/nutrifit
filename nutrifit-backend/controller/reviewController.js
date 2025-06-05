@@ -26,18 +26,18 @@ export async function getReviews(req, res) {
 
 export async function addReviews(req, res) {
     try {
+        const connection = await mysql.createConnection(connectionString);
         const decodedToken = await authentication(req);
         // Verify user exists
         const userId = decodedToken.sub;
         const userVerification = await connection.promise().query(
-            'SELECT * FROM NutriFit.users WHERE user_id = ?',
+            'SELECT * FROM NutriFit.user WHERE user_id = ?',
             [userId]
         );
         if (!userVerification[0] || userVerification[0].length === 0) {
             return res.status(400).json({ error: 'User not found' });
         }
 
-        const connection = await mysql.createConnection(connectionString);
         await connection.promise().query(
             `INSERT INTO NutriFit.reviews 
                 (review_id, recipe_id, user_id, rating, comment, created_at)

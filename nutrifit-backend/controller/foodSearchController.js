@@ -9,11 +9,12 @@ const connectionString = "mysql://root:@localhost:3306/NutriFit";
 export async function getFoodDetailFromName(req, res) {
     const connection = await mysql.createConnection(connectionString);
     try {
+        const searchTerm = `%${req.body.name}%`;
         const [foodDetails] = await connection.promise().query(
             `
-            SELECT * FROM NutriFit.food_items WHERE name=?
+            SELECT * FROM NutriFit.food_items WHERE name LIKE ?
             `,
-            [req.body.name]
+            [searchTerm]
         );
         return res.status(200).json(foodDetails);
     } catch(err) {

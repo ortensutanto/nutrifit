@@ -51,7 +51,7 @@ export async function getNutritionByDate(req, res) {
         }
 
         const [nutrition] = await connection.promise().query(
-            'SELECT * FROM NutriFit.nutrition_logs WHERE user_id = ? AND timestamp = ?',
+            'SELECT * FROM NutriFit.nutrition_logs WHERE user_id = ? AND DATE(timestamp) = ?',
             [userId, req.body.date]
         );
 
@@ -132,6 +132,45 @@ export async function addNutritionRecipe(req, res) {
     }
 }
 
+export async function calculateCalories(userId, goalId) {
+    const connection = await mysql.createConnection(connectionString);
+
+    const [logs] = await connection.promise().query(
+        `
+        SELECT food_item_id, recipe_id, quantity from nutrition_logs
+        WHERE user_id = ? AND goal_id = ?
+        `,
+        [userId, goalId]
+    );
+
+    let calorieCount = 0;
+
+    for(let i = 0; i < logs.length; i++) {
+        const food_item_id = logs[i].food_item_id;
+        const recipe_id = logs[i].recipe_id;
+        const quantity = logs[i].quantity;
+
+        if(food_item_id) {
+            const [calorie_food_item] = await connection.promise().query(
+                `
+                SELECT calories FROM food_items WHERE food_item_id = ?
+                `, [food_item_id]
+            ); 
+            calorieCount += (calorie_food_item[0].calories * Number(quantity));
+        } 
+        if(recipe_id) {
+            const [recipe_item] = await connection.promise().query(
+                `
+                SELECT calories FROM recipes WHERE recipe_id = ?
+                `, [recipe_id]
+            ); 
+            calorieCount += (recipe_item[0].calories * Number(quantity));
+        }
+    }
+
+    return calorieCount;
+} 
+
 export async function getNutritionSummary(req, res) {
     try {
         const connection = await mysql.createConnection(connectionString);
@@ -146,50 +185,20 @@ export async function getNutritionSummary(req, res) {
             return res.status(400).json({ error: 'User not found' });
         }
 
-        // `SELECT 
-        //     nl.date,
-        //     SUM(fi.calories * nl.quantity) as total_calories,
-        //     SUM(fi.protein * nl.quantity) as total_protein,
-        //     SUM(fi.carbohydrate * nl.quantity) as total_carbs,
-        //     SUM(fi.fat * nl.quantity) as total_fat
-        // FROM NutriFit.nutrition_logs nl
-        // JOIN NutriFit.food_items fi ON nl.food_item_id = fi.food_item_id
-        // WHERE nl.user_id = ? AND nl.date = ?
-        // GROUP BY nl.date`,
+        const goalId = req.body.goal_id;
+        if(!goalId) {
+            return res.status(400).json({ error: "Goal Id not provided" });
+        }
 
         const [summary] = await connection.promise().query(
             `
             SELECT food_item_id, recipe_id, quantity from nutrition_logs
             WHERE user_id = ? AND goal_id = ?
             `,
-            [userId, req.body.goal_id]
+            [userId, goalId]
         );
 
-        let calorieCount = 0;
-
-        for(let i = 0; i < summary.length; i++) {
-            const food_item_id = summary[i].food_item_id;
-            const recipe_id = summary[i].recipe_id;
-            const quantity = summary[i].quantity;
-
-            if(food_item_id) {
-                const [calorie_food_item] = await connection.promise().query(
-                    `
-                    SELECT calories FROM food_items WHERE food_item_id = ?
-                    `, [food_item_id]
-                ); 
-                calorieCount += calorie_food_item[0].calories
-            } 
-            if(recipe_id) {
-                const [recipe_item] = await connection.promise().query(
-                    `
-                    SELECT calories FROM recipes WHERE recipe_id = ?
-                    `, [recipe_id]
-                ); 
-                calorieCount += recipe_item[0].calories
-            }
-        }
-        console.log(calorieCount);
+        let calorieCount = await calculateCalories(userId, goalId);
 
         return res.status(200).json({ data: summary, calories: calorieCount });
     } catch (err) {
