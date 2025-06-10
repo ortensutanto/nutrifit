@@ -1,6 +1,7 @@
-import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Feather } from "@expo/vector-icons";
+import axios from "axios";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -10,20 +11,47 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 
 const dummyData = Array(4).fill({
-  title: 'Healthy Taco Salad with fresh vegetable',
-  calories: '120 Kcal',
-  image: require('@/assets/images/recipe-salad.png'),
+  title: "Protein Pizza",
+  calories: "66 Kcal",
+  image:
+    "https://m.ftscrt.com/static/recipe/c707153d-d657-47d5-ae6e-4de50214099f.jpg",
 });
 
-const sections = ['Breakfast', 'Lunch', 'Dinner'];
-const calorieOptions = ['0 - 200', '200 - 400', '400 - 600', '> 600'];
+const sections = ["Breakfast", "Lunch", "Dinner"];
+const calorieOptions = ["0 - 200", "200 - 400", "400 - 600", "> 600"];
 
 export default function RecipesScreen() {
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const response = await axios.get(
+          "https://content-formally-primate.ngrok-free.app/recipes/getRecipesMenu",
+          {
+            headers: {
+              "ngrok-skip-browser-warning": "69420",
+            },
+          }
+        );
+        setRecipes(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecipes();
+  }, []);
+
+  console.log(recipes);
 
   const handleFilterSelect = (filter: string) => {
     setSelectedFilter(filter);
@@ -39,7 +67,7 @@ export default function RecipesScreen() {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={dummyData}
+        data={recipes}
         horizontal={false}
         numColumns={2}
         keyExtractor={(_, index) => section + index}
@@ -53,7 +81,12 @@ export default function RecipesScreen() {
     <View style={styles.container}>
       {/* Search */}
       <View style={styles.searchBar}>
-        <Feather name="search" size={20} color="#555" style={{ marginRight: 6 }} />
+        <Feather
+          name="search"
+          size={20}
+          color="#555"
+          style={{ marginRight: 6 }}
+        />
         <TextInput
           placeholder="Find Recipe"
           style={styles.searchInput}
@@ -91,7 +124,9 @@ export default function RecipesScreen() {
 
       {/* Banner */}
       <TouchableOpacity style={styles.recommendation}>
-        <Text style={styles.recommendText}>Try Our Food Recipe Recommendation</Text>
+        <Text style={styles.recommendText}>
+          Try Our Food Recipe Recommendation
+        </Text>
         <Text style={{ fontSize: 18 }}>✨</Text>
       </TouchableOpacity>
 
@@ -110,11 +145,16 @@ function RecipeCard({ item }: { item: any }) {
   const router = useRouter();
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => router.push('/recipedetail')}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push("/recipedetail")}
+    >
       <Image source={item.image} style={styles.cardImage} />
-      <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+      <Text style={styles.cardTitle} numberOfLines={2}>
+        {item.title}
+      </Text>
       <View style={styles.cardFooter}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Feather name="droplet" size={14} color="#aaa" />
           <Text style={styles.calorieText}>{item.calories}</Text>
         </View>
@@ -126,93 +166,93 @@ function RecipeCard({ item }: { item: any }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(236, 250, 216, 1)',
+    backgroundColor: "rgba(236, 250, 216, 1)",
     padding: 16,
     paddingTop: 50,
     paddingBottom: 200,
   },
   searchBar: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#000',
+    color: "#000",
   },
   recommendation: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 14,
     marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   recommendText: {
     fontSize: 15,
-    color: '#1a1a1a',
+    color: "#1a1a1a",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
     marginTop: 6,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   seeAll: {
     fontSize: 14,
-    color: '#007AFF',
+    color: "#007AFF",
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 10,
-    width: '47%',
-    margin: '1.5%',
+    width: "47%",
+    margin: "1.5%",
   },
   cardImage: {
-    width: '100%',
+    width: "100%",
     height: 100,
     borderRadius: 10,
     marginBottom: 8,
   },
   cardTitle: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 6,
   },
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   calorieText: {
     marginLeft: 4,
     fontSize: 12,
-    color: '#666',
+    color: "#666",
   },
   filterText: {
     fontSize: 13,
-    color: '#333',
+    color: "#333",
     marginBottom: 10,
     marginLeft: 4,
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     paddingTop: 100,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   dropdown: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
     marginHorizontal: 20,
     padding: 10,
@@ -223,7 +263,6 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
-
 });
