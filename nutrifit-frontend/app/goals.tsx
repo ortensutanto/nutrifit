@@ -1,25 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from 'react-native';
 import { useUserData } from './context/userDataContext';
 
 // Define types for our data
 type Gender = 'Male' | 'Female';
 type ActivityLevel = 'Sedentary' | 'Lightly Active' | 'Moderately Active' | 'Very Active' | 'Extra Active';
-
-interface UserDataType {
-  preferredName: string | null;
-  primaryGoal: string | null;
-  secondaryGoal: string | null;
-  age: number | null;
-  gender: number | null;  // Store as number (0 or 1)
-  height: number | null;
-  weight: number | null;
-  activityLevel: number | null;  
-  email: string;
-  password: string;
-}
 
 const PRIMARY_OPTIONS = ['Lose Weight', 'Gain Weight', 'Maintain Weight'] as const;
 const SECONDARY_OPTIONS = ['Gain Muscle', 'Modify Diet', 'Manage Stress'] as const;
@@ -67,10 +54,6 @@ export default function RegisterGoals() {
   const [genderDropdownOpen, setGenderDropdownOpen] = useState(false);
   const [activityDropdownOpen, setActivityDropdownOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  useEffect(() => {
-    if (errorMessage) setErrorMessage('');
-  }, [userData]);
 
   const handleNumberChange = (key: string, text: string) => {
     const cleaned = text.replace(/[^0-9]/g, '');
@@ -164,8 +147,11 @@ export default function RegisterGoals() {
         </Text>
         <Feather name={genderDropdownOpen ? 'chevron-up' : 'chevron-down'} size={18} />
       </TouchableOpacity>
-      {genderDropdownOpen &&
-        GENDER_OPTIONS.map((option: keyof typeof GENDER_MAP, i) => (
+    {genderDropdownOpen &&
+      GENDER_OPTIONS.map((option: keyof typeof GENDER_MAP, i) => {
+        const isSelected = userData.gender === GENDER_MAP[option]; // <--- tambahkan ini
+
+        return (
           <TouchableOpacity
             key={i}
             style={styles.option}
@@ -177,14 +163,15 @@ export default function RegisterGoals() {
               setGenderDropdownOpen(false);
             }}
           >
-            <Text>{option}</Text>
+            <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+              {option}
+            </Text>
             <View style={styles.checkbox}>
-              {userData.gender === GENDER_MAP[option] && (
-                <View style={styles.checkboxChecked} />
-              )}
+              {isSelected && <View style={styles.checkboxChecked} />}
             </View>
           </TouchableOpacity>
-        ))}
+        );
+      })}
 
       {/* Dropdown Activity Level */}
       <TouchableOpacity
@@ -199,26 +186,29 @@ export default function RegisterGoals() {
         <Feather name={activityDropdownOpen ? 'chevron-up' : 'chevron-down'} size={18} />
       </TouchableOpacity>
       {activityDropdownOpen &&
-        ACTIVITY_LEVELS.map((option, i) => (
-          <TouchableOpacity
-            key={i}
-            style={styles.option}
-            onPress={() => {
-              setUserData((prev) => ({
-                ...prev,
-                activityLevel: ACTIVITY_MAP[option],
-              }));
-              setActivityDropdownOpen(false);
-            }}
-          >
-            <Text>{option}</Text>
-            <View style={styles.checkbox}>
-              {userData.activityLevel === ACTIVITY_MAP[option] && (
-                <View style={styles.checkboxChecked} />
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
+        ACTIVITY_LEVELS.map((option, i) => {
+          const isSelected = userData.activityLevel === ACTIVITY_MAP[option];
+          return (
+            <TouchableOpacity
+              key={i}
+              style={styles.option}
+              onPress={() => {
+                setUserData((prev) => ({
+                  ...prev,
+                  activityLevel: ACTIVITY_MAP[option],
+                }));
+                setActivityDropdownOpen(false);
+              }}
+            >
+              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                {option}
+              </Text>
+              <View style={styles.checkbox}>
+                {isSelected && <View style={styles.checkboxChecked} />}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
 
       {/* Dropdown Primary Goal */}
       <TouchableOpacity
@@ -231,24 +221,28 @@ export default function RegisterGoals() {
         <Feather name={primaryDropdownOpen ? 'chevron-up' : 'chevron-down'} size={18} />
       </TouchableOpacity>
       {primaryDropdownOpen &&
-        PRIMARY_OPTIONS.map((option, i) => (
-          <TouchableOpacity
-            key={i}
-            style={styles.option}
-            onPress={() => {
-              setUserData((prev) => ({ ...prev, primaryGoal: option }));
-              setPrimaryDropdownOpen(false);
-            }}
-          >
-            <Text>{option}</Text>
-            <View style={styles.checkbox}>
-              {userData.primaryGoal === option && (
-                <View style={styles.checkboxChecked} />
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
+        PRIMARY_OPTIONS.map((option, i) => {
+          const isSelected = userData.primaryGoal === option;
+          return (
+            <TouchableOpacity
+              key={i}
+              style={styles.option}
+              onPress={() => {
+                setUserData((prev) => ({ ...prev, primaryGoal: option }));
+                setPrimaryDropdownOpen(false);
+              }}
+            >
+              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                {option}
+              </Text>
+              <View style={styles.checkbox}>
+                {isSelected && <View style={styles.checkboxChecked} />}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
 
+        
       {/* Dropdown Secondary Goal */}
       <TouchableOpacity
         style={styles.dropdown}
@@ -260,26 +254,49 @@ export default function RegisterGoals() {
         <Feather name={secondaryDropdownOpen ? 'chevron-up' : 'chevron-down'} size={18} />
       </TouchableOpacity>
       {secondaryDropdownOpen &&
-        SECONDARY_OPTIONS.map((option, i) => (
-          <TouchableOpacity
-            key={i}
-            style={styles.option}
-            onPress={() => {
-              setUserData((prev) => ({ ...prev, secondaryGoal: option }));
-              setSecondaryDropdownOpen(false);
-            }}
-          >
-            <Text>{option}</Text>
-            <View style={styles.checkbox}>
-              {userData.secondaryGoal === option && (
-                <View style={styles.checkboxChecked} />
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
+        SECONDARY_OPTIONS.map((option, i) => {
+          const isSelected = userData.secondaryGoal === option;
+          return (
+            <TouchableOpacity
+              key={i}
+              style={styles.option}
+              onPress={() => {
+                setUserData((prev) => ({ ...prev, secondaryGoal: option }));
+                setSecondaryDropdownOpen(false);
+              }}
+            >
+              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                {option}
+              </Text>
+              <View style={styles.checkbox}>
+                {isSelected && <View style={styles.checkboxChecked} />}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+
+      <TextInput
+        placeholder="Target weight change (kg)"
+        keyboardType="numeric"
+        value={userData.targetWeight !== null ? String(userData.targetWeight) : ''}
+        onChangeText={(text) => handleNumberChange('targetWeight', text)}
+        style={styles.input}
+      />
+
+      <TextInput
+        placeholder="Target time (week)"
+        keyboardType="numeric"
+        value={userData.targetTime !== null ? String(userData.targetTime) : ''}
+        onChangeText={(text) => handleNumberChange('targetTime', text)}
+        style={styles.input}
+      />
+
+      <Text style={{ fontSize: 12, color: 'gray', marginTop: 20 }}>
+        {JSON.stringify(userData, null, 2)}
+      </Text>
 
       {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
-
+      
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
         <Text style={styles.nextText}>Next</Text>
       </TouchableOpacity>
@@ -382,5 +399,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 14,
     fontWeight: '600',
+  },
+  optionText: {
+  fontSize: 16,
+  color: '#333',
+  },
+
+  optionTextSelected: {
+    fontWeight: '700',
+    color: '#111',
   },
 });

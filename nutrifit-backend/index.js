@@ -19,9 +19,9 @@ app.use(cors());
 app.use(express.json());
 
 // Kalo mau panggil database pake yang dibawah ini
-import {createRequire} from "module";
+import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const sql = require('mssql/msnodesqlv8');
+const mysql = require('mysql2');
 
 
 // Contoh Query
@@ -42,7 +42,6 @@ app.get("/status", (request, response) => {
     };
     response.json(status);
 });
-
 
 // Start server
 app.listen(port, () => {

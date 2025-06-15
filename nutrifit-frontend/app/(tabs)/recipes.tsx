@@ -10,35 +10,52 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
-const dummyData = Array(4).fill({
-  title: "Protein Pizza",
-  calories: "66 Kcal",
-  image:
-    "https://m.ftscrt.com/static/recipe/c707153d-d657-47d5-ae6e-4de50214099f.jpg",
-});
+// const dummyData = Array(4).fill({
+//   title: "Protein Pizza",
+//   calories: "66 Kcal",
+//   image:
+//     "https://m.ftscrt.com/static/recipe/c707153d-d657-47d5-ae6e-4de50214099f.jpg",
+// });
 
 const sections = ["Breakfast", "Lunch", "Dinner"];
-const calorieOptions = ["0 - 200", "200 - 400", "400 - 600", "> 600"];
 
 export default function RecipesScreen() {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("");
-  const [recipes, setRecipes] = useState([]);
+  const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const calorieOptions = ["0 - 200", "200 - 400", "400 - 600", "> 600"];
+
+  const getCalorieRange = (filter: string) => {
+    if (filter === "0 - 200") return [0, 200];
+    if (filter === "200 - 400") return [200, 400];
+    if (filter === "400 - 600") return [400, 600];
+    if (filter === "> 600") return [600, Infinity];
+    return [0, Infinity];
+  };
+
+  const filteredRecipes = selectedFilter
+  ? recipes.filter((recipe: any) => {
+      const [min, max] = getCalorieRange(selectedFilter);
+      return recipe.calories >= min && recipe.calories <= max;
+    })
+  : recipes;
 
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
         const response = await axios.get(
-          "https://content-formally-primate.ngrok-free.app/recipes/getRecipesMenu",
-          {
-            headers: {
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
+          // "https://content-formally-primate.ngrok-free.app/recipes/getRecipesMenu",
+          // {
+          //   headers: {
+          //     "ngrok-skip-browser-warning": "69420",
+          //   },
+          // }
+          "http://localhost:3000/recipes/getRecipesMenu"
         );
         setRecipes(response.data);
       } catch (error) {
@@ -50,8 +67,6 @@ export default function RecipesScreen() {
 
     fetchRecipes();
   }, []);
-
-  console.log(recipes);
 
   const handleFilterSelect = (filter: string) => {
     setSelectedFilter(filter);
@@ -67,7 +82,7 @@ export default function RecipesScreen() {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={recipes}
+        data={filteredRecipes}
         horizontal={false}
         numColumns={2}
         keyExtractor={(_, index) => section + index}
@@ -134,7 +149,7 @@ export default function RecipesScreen() {
       <FlatList
         data={sections}
         keyExtractor={(item) => item}
-        renderItem={renderSection}
+        renderItem={(section) => renderSection(section)}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -147,22 +162,28 @@ function RecipeCard({ item }: { item: any }) {
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push("/recipedetail")}
+      onPress={() => router.push({ pathname: "/recipedetail", params: { id: item.recipe_id } })}
     >
-      <Image source={item.image} style={styles.cardImage} />
+      <Image
+        source={{ uri: item.image_url || 'https://via.placeholder.com/150' }}
+        style={styles.cardImage}
+      />
       <Text style={styles.cardTitle} numberOfLines={2}>
         {item.title}
       </Text>
       <View style={styles.cardFooter}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Feather name="droplet" size={14} color="#aaa" />
-          <Text style={styles.calorieText}>{item.calories}</Text>
+          <Text style={styles.calorieText}>
+            {item.calories ? `${item.calories} kcal` : 'N/A'}
+          </Text>
         </View>
         <Feather name="heart" size={16} color="#aaa" />
       </View>
     </TouchableOpacity>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

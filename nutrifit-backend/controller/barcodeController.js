@@ -6,7 +6,8 @@ import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
 import { v4 as uuidv4 } from "uuid"
 
-const connectionString = "mysql://root:@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 async function addToFoodItemDatabase(food_item_id, upc_barcode, name, calories, protein, carbohydrate, fat) {
     const connection = await mysql.createConnection(connectionString);

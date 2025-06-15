@@ -1,4 +1,5 @@
 // app/login.tsx
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -10,13 +11,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useUserData } from "./context/userDataContext";
 
-const apiURL = "content-formally-primate.ngrok-free.app";
+// const apiURL = "content-formally-primate.ngrok-free.app";
+const apiURL = "localhost:3000"
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { setUserData } = useUserData();
+
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -25,15 +30,30 @@ export default function LoginScreen() {
     }
 
     try {
-      const response = await fetch(`https://${apiURL}/users/login`, {
+      const response = await fetch(`http://${apiURL}/users/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+          // "ngrok-skip-browser-warning": "69420"
+        },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
+      
+        await AsyncStorage.setItem('userToken', data.token);
+        await AsyncStorage.setItem('userId', data.user_id)
+        await AsyncStorage.setItem('displayName', data.displayName);
+
+        setUserData((prev) => ({
+          ...prev,
+          displayName: data.displayName,
+          email,
+          password,
+        }));
+
         Alert.alert("Login success", "Welcome!");
         router.replace("/(tabs)");
       } else {

@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 export type UserDataType = {
-  preferredName: string;
+  displayName: string;
   primaryGoal: string;
   secondaryGoal: string;
   age: number | null;
@@ -11,6 +11,8 @@ export type UserDataType = {
   activityLevel: number | null;  // 1-5 for activity levels
   email: string;
   password: string;
+  targetWeight: number | null; 
+  targetTime: number | null;
 };
 
 type UserDataContextType = {
@@ -19,7 +21,7 @@ type UserDataContextType = {
 };
 
 const defaultUserData: UserDataType = {
-  preferredName: '',
+  displayName: '',
   primaryGoal: '',
   secondaryGoal: '',
   age: null,
@@ -29,6 +31,8 @@ const defaultUserData: UserDataType = {
   activityLevel: null,
   email: '',
   password: '',
+  targetWeight: null,
+  targetTime: null
 };
 
 const UserDataContext = createContext<UserDataContextType | undefined>(undefined);

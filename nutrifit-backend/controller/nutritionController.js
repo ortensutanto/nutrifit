@@ -7,7 +7,8 @@ import dotenv from "dotenv/config"
 import { v4 as uuidv4 } from "uuid"
 import { authentication } from "./userController.js";
 
-const connectionString = "mysql://root:@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function getNutritionByGoalId(req, res) {
     try {
@@ -42,18 +43,27 @@ export async function getNutritionByDate(req, res) {
 
         const decodedToken = await authentication(req);
         const userId = decodedToken.sub;
+        const date = req.query.date;
+
+        if (!date) {
+            return res.status(400).json({ error: 'Missing "date" query parameter' });
+        }
+
         const userVerification = await connection.promise().query(
             'SELECT * FROM NutriFit.user WHERE user_id = ?',
             [userId]
         );
+
         if (!userVerification[0] || userVerification[0].length === 0) {
             return res.status(400).json({ error: 'User not found' });
         }
 
         const [nutrition] = await connection.promise().query(
             'SELECT * FROM NutriFit.nutrition_logs WHERE user_id = ? AND DATE(timestamp) = ?',
-            [userId, req.body.date]
+            [userId, date]
         );
+
+        console.log('Date param:', date, typeof date);
 
         return res.status(200).json({ data: nutrition });
     } catch (err) {

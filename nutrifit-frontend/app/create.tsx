@@ -79,12 +79,14 @@ export default function Create() {
         weight: userData.weight,
         activityLevel: userData.activityLevel,
         primaryGoal: userData.primaryGoal,
-        secondaryGoal: userData.secondaryGoal
+        secondaryGoal: userData.secondaryGoal,
+        targetWeight: userData.targetWeight,
+        targetTime: userData.targetTime
       });
 
       console.log('User data:', userData);
-      // Call API to register user
-      await registerUser(userData);
+      const response = await registerUser(userData);
+      console.log('Registration successful:', response);
 
       // Registration successful
       Alert.alert(
@@ -93,12 +95,22 @@ export default function Create() {
         [
           {
             text: 'OK',
-            onPress: () => router.push('/login'),
+            onPress: () => {
+              console.log('Navigating to login...');
+              router.replace('/login');
+              router.back();
+            },
           },
-        ]
+        ],
+        { cancelable: false }
       );
     } catch (error) {
       console.error('Registration error:', error);
+      Alert.alert(
+        'Registration Failed',
+        error instanceof Error ? error.message : 'Registration failed. Please try again.',
+        [{ text: 'OK' }]
+      );
       setErrorMessage(error instanceof Error ? error.message : 'Registration failed');
     } finally {
       setLoading(false);

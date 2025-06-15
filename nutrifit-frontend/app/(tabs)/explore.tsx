@@ -1,32 +1,88 @@
-import React, { useState } from 'react';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
+  FlatList,
+  StyleSheet,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
-  FlatList,
+  View,
 } from 'react-native';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+
+type FoodItem = {
+  food_item_id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  fat: number;
+  carbohydrate: number;
+};
+
+const apiURL = "http://localhost:3000";
+const HISTORY_KEY = 'search_history'
 
 export default function SearchScreen() {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
-  const [history, setHistory] = useState(['History #1']);
+  const [history, setHistory] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
 
-  const handleDeleteHistory = (item: string) => {
-    setHistory(history.filter(h => h !== item));
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(HISTORY_KEY);
+        if (stored) setHistory(JSON.parse(stored));
+      } catch (err) {
+        console.error("Failed to load history", err);
+      }
+    };
+    loadHistory();
+  }, []);
+
+  const saveHistory = async (newHistory: string[]) => {
+    try {
+      await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+    } catch (err) {
+      console.error("Failed to save history", err);
+    }
+  };
+
+  const handleDeleteHistory = async (item: string) => {
+    const newHistory = history.filter(h => h !== item);
+    setHistory(newHistory);
+    await saveHistory(newHistory);
   };
 
   const handleScanBarcode = () => {
     router.push('/barcodescanner');
   };
 
-  const handleSearchSubmit = () => {
-    if (searchText && !history.includes(searchText)) {
-      setHistory([searchText, ...history]);
+  const handleSearchSubmit = async () => {
+  if (!searchText.trim()) return;
+
+  const newHistory = [searchText, ...history.filter(h => h !== searchText)];
+  setHistory(newHistory);
+  await saveHistory(newHistory);
+
+  try {
+    const response = await axios.get(`${apiURL}/foodSearch/getFoodDetailFromName`, {
+      params: { name: searchText }
+    });
+
+    if (Array.isArray(response.data)) {
+      setSearchResults(response.data);
+    } else {
+      console.warn("Unexpected response:", response.data);
+      setSearchResults([]);
     }
+  } catch (err) {
+    console.error("Failed to search food:", err);
+    setSearchResults([]);
+  }
+
     setSearchText('');
   };
 
@@ -49,10 +105,23 @@ export default function SearchScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Tombol Clear All */}
+      {history.length > 0 && (
+        <TouchableOpacity
+          onPress={async () => {
+            setHistory([]);
+            await AsyncStorage.removeItem(HISTORY_KEY);
+          }}
+          style={{ alignSelf: 'flex-end', marginRight: 16, marginBottom: 8 }}
+        >
+          <Text style={{ color: 'red' }}>Clear All</Text>
+        </TouchableOpacity>
+      )}
+
       {/* History list */}
       <FlatList
         data={history}
-        keyExtractor={(item, index) => item + index}
+         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.historyItem}>
             <Feather name="rotate-ccw" size={16} color="#000" />
@@ -63,6 +132,23 @@ export default function SearchScreen() {
           </View>
         )}
       />
+      
+      {/* Search Results */}
+      {searchResults.length > 0 && (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => item.food_item_id}
+          renderItem={({ item }) => (
+            <View style={styles.resultCard}>
+              <Text style={styles.resultTitle}>{item.name}</Text>
+              <Text style={styles.resultDetail}>Calories: {item.calories}</Text>
+              <Text style={styles.resultDetail}>Protein: {item.protein}g</Text>
+              <Text style={styles.resultDetail}>Fat: {item.fat}g</Text>
+              <Text style={styles.resultDetail}>Carbs: {item.carbohydrate}g</Text>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -104,5 +190,26 @@ const styles = StyleSheet.create({
   historyText: {
     flex: 1,
     fontSize: 14,
+  },
+  resultCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resultTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  resultDetail: {
+    fontSize: 14,
+    color: '#555',
   },
 });

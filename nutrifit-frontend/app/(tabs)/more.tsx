@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function more(){
+export default function More(){
    const router = useRouter();
    const [logoutVisible, setLogoutVisible] = useState(false);
 
