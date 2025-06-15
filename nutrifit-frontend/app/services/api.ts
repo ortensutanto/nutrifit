@@ -2,7 +2,10 @@ import axios from "axios";
 import { UserDataType } from "../context/userDataContext";
 
 // Ganti dengan IP address komputer Anda
-const API_BASE_URL = "https://content-formally-primate.ngrok-free.app";
+// const API_BASE_URL = "https://content-formally-primate.ngrok-free.app";
+
+// Local development URL
+const API_BASE_URL = "http://localhost:3000";
 
 export const registerUser = async (userData: UserDataType) => {
   try {
@@ -25,8 +28,18 @@ export const registerUser = async (userData: UserDataType) => {
 
     const response = await axios.post(
       `${API_BASE_URL}/users/register`,
-      payload
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
+
+    if (!response.data) {
+      throw new Error('No response from server');
+    }
+
     console.log("Registration response:", response.data);
     return response.data;
   } catch (error) {
@@ -34,18 +47,18 @@ export const registerUser = async (userData: UserDataType) => {
       error: error,
       response: axios.isAxiosError(error)
         ? {
-            data: error.response?.data,
-            status: error.response?.status,
-            headers: error.response?.headers,
-          }
+          data: error.response?.data,
+          status: error.response?.status,
+          headers: error.response?.headers,
+        }
         : null,
       request: axios.isAxiosError(error)
         ? {
-            method: error.config?.method,
-            url: error.config?.url,
-            data: error.config?.data,
-            headers: error.config?.headers,
-          }
+          method: error.config?.method,
+          url: error.config?.url,
+          data: error.config?.data,
+          headers: error.config?.headers,
+        }
         : null,
     });
 

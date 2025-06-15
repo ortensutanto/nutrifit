@@ -7,8 +7,8 @@ import dotenv from "dotenv/config"
 import { authentication } from "./userController.js"
 var request = require("request");
 
-// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-const connectionString = "mysql://root:@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 // Buat menu recipes
 export async function getRecipesMenu(req, res) {
@@ -134,14 +134,15 @@ export async function getRecipes(req, res) {
 export async function getRecipeById(req, res) {
     try {
         const connection = await mysql.createConnection(connectionString);
-        console.log(req.params.id)
+        const recipeId = req.query.recipe_id;
+
         const [recipes] = await connection.promise().query(
             `SELECT r.*, fi.name as ingredient_name, ri.quantity, ri.unit
             FROM NutriFit.recipes r
             LEFT JOIN NutriFit.recipe_ingredients ri ON r.recipe_id = ri.recipe_id
             LEFT JOIN NutriFit.food_items fi ON ri.food_item_id = fi.food_item_id
             WHERE r.recipe_id = ?`,
-            [req.query.id]
+            [recipeId]
             // Pass kaya http://localhost:3000/recipes/getRecipeId?id=03ECB45B-B620-4134-9051-09FA2D3FD81A
         );
 

@@ -8,8 +8,8 @@ import { v4 as uuidv4 } from "uuid"
 import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
 
-// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-const connectionString = "mysql://root:@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 function mifflinStJeor(weight, height, age, gender) {
     // gender: 0 (Male), 1 (Female)
@@ -178,7 +178,7 @@ export async function getGoalInfo(req, res) {
         return res.status(200).json({ data: goals });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: 'Unexpected error occurred' });
+        return res.status(500).json({ error: err.message || 'Unexpected error occurred' }); 
     }
 }
 
@@ -198,8 +198,8 @@ export async function getCalorieNeeded(req, res) {
             return res.status(400).json({ error: 'User not found' });
         }
 
-        const goalId = req.body.goal_id;
-        if(!goalId) {
+        const goalId = req.query.goal_id;
+            if (!goalId) {
             return res.status(400).json({ error: "Goal Id Not Provided" });
         }
 
@@ -208,6 +208,10 @@ export async function getCalorieNeeded(req, res) {
             [goalId]
         );
 
+        if (!goals || goals.length === 0) {
+            return res.status(404).json({ error: "Goal not found" });
+        }
+    
         const goalCalories = goals[0].target_calories_per_day;
         const consumedCalories = await calculateCalories(userId, goalCalories);
         const caloriesDeficit = goalCalories - Number(consumedCalories);
