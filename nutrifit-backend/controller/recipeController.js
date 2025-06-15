@@ -4,6 +4,8 @@ const require = createRequire(import.meta.url);
 const mysql = require('mysql2');
 import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
+import { authentication } from "./userController.js"
+var request = require("request");
 
 const connectionString = "mysql://root:password@localhost:3306/NutriFit";
 // const connectionString = "mysql://root:@localhost:3306/NutriFit";
@@ -23,6 +25,76 @@ export async function getRecipesMenu(req, res) {
         return res.status(500).json({error: err});
     } finally {
         connection.close();
+    }
+}
+
+export async function getRecipesRecommendationMenu(req, res) {
+    try {
+        const connection = await mysql.createConnection(connectionString);
+
+        const decodedToken = await authentication(req);
+        // Verify user exists
+        const userId = decodedToken.sub;
+        const userVerification = await connection.promise().query(
+            'SELECT * FROM NutriFit.user WHERE user_id = ?',
+            [userId]
+        );
+        if (!userVerification[0] || userVerification[0].length === 0) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
+        const [userReviews] = await connection.promise().query(
+            `
+            SELECT recipe_id, rating FROM reviews where user_id = ?
+            `, [
+                userId
+            ]
+        );
+
+        if(!userReviews[0] || userReviews[0].length === 0) {
+            console.log("User has no reviews, returning all recipes");
+            return getRecipesMenu(req, res)     
+        }
+
+        let reviews = {};
+        for (let i = 0; i < userReviews.length; i++) {
+            reviews[userReviews[i].recipe_id] = userReviews[i].rating;
+        }
+
+        // Local dari model.py
+        const recommendationUrl = "http://127.0.0.1:5001/recommend"
+        var options = {
+            method: 'POST',
+            url: recommendationUrl,
+            body: JSON.stringify({ reviews: reviews }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }
+
+        request(options, async function (error, response, body) {
+            if (error) {
+                console.error('Error:', error);
+            }
+            try {
+                const recommendations = JSON.parse(body).recommended_recipe_ids;
+                try {
+                    const [recipes] = await connection.promise().query(
+                        `SELECT recipe_id, image_url, title, calories FROM NutriFit.recipes WHERE recipe_id IN (?)`,
+                        [recommendations]
+                    );
+                    return res.status(200).json(recipes);
+                } catch(err) {
+                    console.error(err);
+                    return res.status(500).json({error: err});
+                }
+            } catch (parseError) {
+                console.error('Parse Error:', parseError);
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
 
