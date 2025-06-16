@@ -217,7 +217,7 @@ export async function getCalorieNeeded(req, res) {
         const caloriesDeficit = goalCalories - Number(consumedCalories);
         return res.status(200).json({ 
             goal_calories: goalCalories,
-            comsumed_calories: consumedCalories,
+            consumed_calories: consumedCalories,
             calories_deficit: caloriesDeficit || 0
         });
     } catch(err) {
