@@ -276,7 +276,7 @@ export async function getCalorieNeeded(req, res) {
     }
 
     const goalCalories = goals[0].target_calories_per_day;
-    const consumedCalories = await calculateCalories(userId, goalCalories);
+    const consumedCalories = await calculateCalories(userId, goalId);
     const caloriesDeficit = goalCalories - Number(consumedCalories);
     return res.status(200).json({
       goal_calories: goalCalories,
