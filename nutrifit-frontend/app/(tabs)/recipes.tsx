@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -10,7 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 // const dummyData = Array(4).fill({
@@ -39,11 +39,11 @@ export default function RecipesScreen() {
   };
 
   const filteredRecipes = selectedFilter
-  ? recipes.filter((recipe: any) => {
-      const [min, max] = getCalorieRange(selectedFilter);
-      return recipe.calories >= min && recipe.calories <= max;
-    })
-  : recipes;
+    ? recipes.filter((recipe: any) => {
+        const [min, max] = getCalorieRange(selectedFilter);
+        return recipe.calories >= min && recipe.calories <= max;
+      })
+    : recipes;
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -138,7 +138,14 @@ export default function RecipesScreen() {
       </Modal>
 
       {/* Banner */}
-      <TouchableOpacity style={styles.recommendation}>
+      <TouchableOpacity
+        style={styles.recommendation}
+        onPress={() =>
+          router.push({
+            pathname: "/recomendation",
+          })
+        }
+      >
         <Text style={styles.recommendText}>
           Try Our Food Recipe Recommendation
         </Text>
@@ -162,10 +169,15 @@ function RecipeCard({ item }: { item: any }) {
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push({ pathname: "/recipedetail", params: { id: item.recipe_id } })}
+      onPress={() =>
+        router.push({
+          pathname: "/recipedetail",
+          params: { id: item.recipe_id },
+        })
+      }
     >
       <Image
-        source={{ uri: item.image_url || 'https://via.placeholder.com/150' }}
+        source={{ uri: item.image_url || "https://via.placeholder.com/150" }}
         style={styles.cardImage}
       />
       <Text style={styles.cardTitle} numberOfLines={2}>
@@ -175,7 +187,7 @@ function RecipeCard({ item }: { item: any }) {
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Feather name="droplet" size={14} color="#aaa" />
           <Text style={styles.calorieText}>
-            {item.calories ? `${item.calories} kcal` : 'N/A'}
+            {item.calories ? `${item.calories} kcal` : "N/A"}
           </Text>
         </View>
         <Feather name="heart" size={16} color="#aaa" />
@@ -183,7 +195,6 @@ function RecipeCard({ item }: { item: any }) {
     </TouchableOpacity>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
