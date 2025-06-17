@@ -83,22 +83,31 @@ export async function calculateGoals(req, res) {
       .toISOString()
       .split("T")[0]; // Tomorrow 'YYYY-MM-DD'
 
-    // Delete duplicate goals jika ada
-    await connection.promise().query(
-      `
-            DELETE FROM Nutrifit.goals WHERE user_id = ? AND start_date = ?
-            `,
-      [userId, startDate]
+    const [existingGoal] = await connection.promise().query(
+        `
+            SELECT goal_id FROM NutriFit.goals
+            WHERE user_id = ? AND start_date = ?
+        `,
+        [userId, startDate]
     );
+
+    if (existingGoal && existingGoal.length > 0) {
+        return res.status(409).json({ // 409 Conflict is more appropriate here
+            error: "A goal for today already exists. Please update it instead of creating a new one.",
+            goal_id: existingGoal[0].goal_id,
+        });
+    }
+
+    const goalId = uuidv4();
 
     await connection.promise().query(
       `INSERT INTO NutriFit.goals 
                 (goal_id, user_id, goal_type, target_calories_per_day, start_date, end_date)
             VALUES (?, ?, ?, ?, ?, ?)`,
-      [uuidv4(), userId, req.body.goal_type, targetCalories, startDate, endDate]
+      [goalId, userId, req.body.goal_type, targetCalories, startDate, endDate]
     );
 
-    return res.status(201).json({ message: "Goal created successfully" });
+    return res.status(201).json({ message: "Goal created successfully", goal_id: goalId });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });

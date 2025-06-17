@@ -13,6 +13,6 @@ import { getFoodDetailFromName, getFoodDetailFromId } from "../controller/foodSe
 // "name": indomie -> Bisa keluar Mie Indomie Goreng
 router.get("/getFoodDetailFromName", getFoodDetailFromName);
 
-routert.get("/getFoodDetailFromId", getFoodDetailFromId);
+router.get("/getFoodDetailFromId", getFoodDetailFromId);
 
 export default router;
