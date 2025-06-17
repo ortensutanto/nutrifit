@@ -1,7 +1,7 @@
 import express from "express"
 const router = express.Router()
 
-import { getFoodDetailFromName } from "../controller/foodSearchController.js";
+import { getFoodDetailFromName, getFoodDetailFromId } from "../controller/foodSearchController.js";
 
 /*
     Input:
@@ -12,5 +12,7 @@ import { getFoodDetailFromName } from "../controller/foodSearchController.js";
 */
 // "name": indomie -> Bisa keluar Mie Indomie Goreng
 router.get("/getFoodDetailFromName", getFoodDetailFromName);
+
+routert.get("/getFoodDetailFromId", getFoodDetailFromId);
 
 export default router;
