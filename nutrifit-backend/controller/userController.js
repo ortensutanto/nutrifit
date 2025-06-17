@@ -9,8 +9,8 @@ import dotenv from "dotenv/config"
 import { json } from "express"
 import { v4 as uuidv4 } from "uuid"
 
-const connectionString = "mysql://root:password@localhost:3306/";
-// const connectionString = "mysql://root:@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function register(req, res) {
     try {

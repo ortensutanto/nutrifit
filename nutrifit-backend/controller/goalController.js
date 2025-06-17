@@ -8,8 +8,8 @@ import { v4 as uuidv4 } from "uuid"
 import jsonwebtoken from "jsonwebtoken"
 import dotenv from "dotenv/config"
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-// const connectionString = "mysql://root:@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 function mifflinStJeor(weight, height, age, gender) {
     // gender: 0 (Male), 1 (Female)
@@ -128,17 +128,25 @@ export async function copyPreviousGoal(req, res) {
         if (!goalSearch[0] || goalSearch[0].length === 0) {
             return res.status(404).json({ error: "No previous day's goal found to copy" });
         }
+
         const goalType = goalSearch[0].goal_type;
         const targetCalories = goalSearch[0].target_calories_per_day;
         const startDate = new Date().toISOString().split('T')[0]; // Today 'YYYY-MM-DD'
         const endDate = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]; // Tomorrow 'YYYY-MM-DD'
 
-        const [deleteDuplicateGoal] = await connection.promise().query(
+        // Check if a goal for today already exists
+        const [existingGoal] = await connection.promise().query(
             `
-            DELETE FROM NutriFit.goals 
-            WHERE user_id = ? AND start_date = ?;
+            SELECT * FROM NutriFit.goals
+            WHERE user_id = ? AND start_date = ?
             `, [userId, startDate]
         );
+
+        if( existingGoal[0] && existingGoal[0].length > 0) {
+            return res.status(400).json({ error: "Goal for today already exists.", goal_id: existingGoal[0].goal_id });
+        }
+
+        const goal_id = uuidv4();
 
         const [insertGoal] = await connection.promise().query(
             `
@@ -146,13 +154,46 @@ export async function copyPreviousGoal(req, res) {
                 (goal_id, user_id, goal_type, target_calories_per_day, start_date, end_date)
             VALUES
                 (?, ?, ?, ?, ?, ?)
-            `, [uuidv4(), userId, goalType, targetCalories, startDate, endDate]
+            `, [goal_id, userId, goalType, targetCalories, startDate, endDate]
         );
 
-        return res.status(201).json({ message: "Previous goal succesfully copied to today" });
+        return res.status(201).json({ message: "Previous goal succesfully copied to today", goal_id: goal_id });
     } catch(err) {
         console.error(err);
         return res.status(500).json({ error: "Unexpected error occured" });
+    }
+}
+
+export async function getTodayGoal(req, res) {
+    try {
+        const connection = await mysql.createConnection(connectionString);
+        const decodedToken = await authentication(req);
+        const userId = decodedToken.sub;
+        const userVerification = await connection.promise().query(
+            'SELECT user_id FROM NutriFit.user WHERE user_id = ?',
+            [userId]
+        );
+
+        if (!userVerification[0] || userVerification[0].length === 0) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
+        const startDate = new Date().toISOString().split('T')[0]; // Today 'YYYY-MM-DD'
+        const [goals] = await connection.promise().query(
+            `
+            SELECT goal_id FROM NutriFit.goals
+            WHERE user_id = ? AND start_date = ?
+            `, [userId, startDate]
+        );
+
+        if (!goals || goals.length === 0) {
+            return copyPreviousGoal(req, res);
+        }
+
+        return res.status(200).json({ "goal_id": goals[0].goal_id });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Unexpected error occurred' });
     }
 }
 

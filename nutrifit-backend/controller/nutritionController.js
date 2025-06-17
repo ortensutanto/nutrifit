@@ -36,7 +36,6 @@ export async function getNutritionByGoalId(req, res) {
     }
 }
 
-
 export async function getNutritionByDate(req, res) {
     try {
         const connection = await mysql.createConnection(connectionString);

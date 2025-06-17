@@ -1,7 +1,7 @@
 import express from "express"
 const router = express.Router()
 
-import { calculateGoals, copyPreviousGoal, getGoalInfo, getCalorieNeeded } from "../controller/goalController.js"
+import { calculateGoals, copyPreviousGoal, getGoalInfo, getCalorieNeeded, getTodayGoal } from "../controller/goalController.js"
 
 // Input, Header: Bearer userToken
 // Body: 
@@ -52,5 +52,7 @@ router.get("/getGoalInfo", getGoalInfo);
     }
 */
 router.get("/getCalorieNeeded", getCalorieNeeded);
+
+router.get("/getTodayGoal", getTodayGoal); // Alias for getGoalInfo to retrieve today's goal
 
 export default router;
