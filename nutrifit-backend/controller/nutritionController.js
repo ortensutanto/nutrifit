@@ -190,11 +190,12 @@ export async function getNutritionSummary(req, res) {
             'SELECT * FROM NutriFit.user WHERE user_id = ?',
             [userId]
         );
+
         if (!userVerification[0] || userVerification[0].length === 0) {
             return res.status(400).json({ error: 'User not found' });
         }
 
-        const goalId = req.body.goal_id;
+        const goalId = req.params.goal_id;
         if(!goalId) {
             return res.status(400).json({ error: "Goal Id not provided" });
         }

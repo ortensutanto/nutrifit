@@ -30,3 +30,25 @@ export async function getFoodDetailFromName(req, res) {
         return res.status(500).json({error: "Unexpected Error Occured"});
     }
 }
+
+export async function getFoodDetailFromId(req, res) {
+    const connection = await mysql.createConnection(connectionString);
+    try {
+        const foodId = req.query.food_id;
+        
+        if (!foodId) {
+            return res.status(400).json({ error: 'Missing "id" query parameter' });
+        }
+
+        const [foodDetails] = await connection.promise().query(
+            `
+            SELECT * FROM NutriFit.food_items WHERE food_id = ?
+            `,
+            [foodId]
+        );
+        return res.status(200).json(foodDetails);
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({error: "Unexpected Error Occured"});
+    }
+}
