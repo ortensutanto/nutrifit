@@ -10,16 +10,25 @@ import {
   View,
 } from "react-native";
 
+interface Data {
+  food_item_id: string;
+  quantity: number;
+  recipe_id: string;
+}
+
 export default function NutritionSummaryScreen() {
   // Dummy data (you can replace these later with API values)
-  const [goalCalories, setGoalCalories] = useState<number>(1800);
-  const [consumedCalories, setConsumedCalories] = useState<number>(1250);
+  const [goalCalories, setGoalCalories] = useState<number>();
+  const [consumedCalories, setConsumedCalories] = useState<number>();
+  const [remaining, setRemaining] = useState<number>();
   const [nutritionLog, setNutritionLog] = useState([
     { name: "Chicken Salad", calories: 350 },
     { name: "Rice & Egg", calories: 400 },
     { name: "Banana Smoothie", calories: 500 },
   ]);
   const [loading, setLoading] = useState(true);
+
+  const [food, setFood] = useState();
 
   const getGoalFromAPI = async () => {
     try {
@@ -29,7 +38,8 @@ export default function NutritionSummaryScreen() {
         return;
       }
 
-      const goalId = await axios.get(
+      // cari goal id
+      const goalResponse = await axios.get(
         `http://localhost:3000/goals/getTodayGoal`,
         {
           headers: {
@@ -37,24 +47,52 @@ export default function NutritionSummaryScreen() {
           },
         }
       );
-      if (!goalId.data.goal_id) {
-        return;
-      }
+      const goalId = goalResponse.data.goal_id;
+      if (!goalId) return;
 
-      // const goalIdAsli = goalId.data.goal_id;
-      // console.log(goalIdAsli);
-
-      const res = await axios.get(
-        `http://localhost:3000/nutrition/getNutritionSummary?goal_id=${goalId.data.goal_id}`,
+      // cari nutrition summary dari goal id
+      const summaryResponse = await axios.get(
+        `http://localhost:3000/nutrition/getNutritionSummary?goal_id=${goalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      console.log(res.data.calories);
-      // console.log(res.data.);
-      // setGoalId(res.data.goal_id);
+
+      const nutritionData = summaryResponse.data;
+
+      const getcaloriesneed = await axios.get(
+        `http://localhost:3000/goals/getCalorieNeeded/`,
+        {
+          params: { goal_id: goalId },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(getcaloriesneed);
+
+      setGoalCalories(getcaloriesneed.data.goal_calories);
+      setConsumedCalories(getcaloriesneed.data.consumed_calories);
+      setRemaining(getcaloriesneed.data.calories_deficit);
+
+      setConsumedCalories(nutritionData.calories);
+
+      // cari data dari recipe id
+      const foodDetails: any = await Promise.all(
+        nutritionData.data.map((item: any) =>
+          axios
+            .get(`http://localhost:3000/recipes/getRecipeId`, {
+              params: { recipe_id: item.recipe_id },
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((res) => res.data)
+        )
+      );
+
+      setFood(foodDetails);
     } catch (err) {
       console.error(err);
     }
@@ -84,7 +122,7 @@ export default function NutritionSummaryScreen() {
     return () => clearTimeout(timer);
   }, []);
 
-  const remaining = goalCalories - consumedCalories;
+  // const remaining = goalCalories - consumedCalories;
 
   if (loading) {
     return (
@@ -108,7 +146,10 @@ export default function NutritionSummaryScreen() {
 
         <Text style={styles.label}>Remaining:</Text>
         <Text
-          style={[styles.value, { color: remaining < 0 ? "red" : "green" }]}
+          style={[
+            styles.value,
+            { color: (remaining ?? 0) < 0 ? "red" : "green" },
+          ]}
         >
           {remaining} kcal
         </Text>
@@ -117,11 +158,11 @@ export default function NutritionSummaryScreen() {
       <Text style={styles.subheader}>Today's Nutrition Log:</Text>
       {nutritionLog.length > 0 ? (
         <FlatList
-          data={nutritionLog}
+          data={food}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <View style={styles.logItem}>
-              <Text style={styles.foodName}>{item.name}</Text>
+              <Text style={styles.foodName}>{item.title}</Text>
               <Text style={styles.foodCal}>{item.calories} kcal</Text>
             </View>
           )}
