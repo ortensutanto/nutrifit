@@ -86,17 +86,48 @@ export default function NutritionSummaryScreen() {
       setConsumedCalories(nutritionData.calories);
 
       // cari data dari recipe id
+      // const foodDetails: any = await Promise.all(
+      //   nutritionData.data.map((item: any) =>
+      //     axios
+      //       .get(`${apiURL}/recipes/getRecipeId`, {
+      //         params: { recipe_id: item.recipe_id },
+      //         headers: { Authorization: `Bearer ${token}` ,
+      //           "ngrok-skip-browser-warning": "69420"
+      //         },
+      //       })
+      //       .then((res) => res.data)
+      //   )
+      // );
       const foodDetails: any = await Promise.all(
-        nutritionData.data.map((item: any) =>
-          axios
-            .get(`${apiURL}/recipes/getRecipeId`, {
-              params: { recipe_id: item.recipe_id },
-              headers: { Authorization: `Bearer ${token}` ,
-                "ngrok-skip-browser-warning": "69420"
-              },
-            })
-            .then((res) => res.data)
-        )
+          nutritionData.data.map(async (item: any) => {
+              if (item.recipe_id) {
+                  const res = await axios.get(`${apiURL}/recipes/getRecipeId`, {
+                      params: { recipe_id: item.recipe_id },
+                      headers: {
+                          Authorization: `Bearer ${token}`,
+                          "ngrok-skip-browser-warning": "69420",
+                      },
+                  });
+                  return {
+                      title: res.data.title, // normalize recipe title to 'name'
+                      calories: res.data.calories,
+                  };
+              } else if (item.food_item_id) {
+                  const res = await axios.get(`${apiURL}/foodSearch/getFoodDetailFromId`, {
+                      params: { food_item_id: item.food_item_id },
+                      headers: {
+                          Authorization: `Bearer ${token}`,
+                          "ngrok-skip-browser-warning": "69420",
+                      },
+                  });
+                  return {
+                      title: res.data[0].name,
+                      calories: res.data[0].calories,
+                  };
+              } else {
+                  return null;
+              }
+          })
       );
 
       setFood(foodDetails);
