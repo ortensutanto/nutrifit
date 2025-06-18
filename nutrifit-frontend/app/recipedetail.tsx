@@ -1,4 +1,7 @@
 import { FontAwesome } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Image,
@@ -9,40 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// import { ScrollView } from "react-native-gesture-handler";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-import { useLocalSearchParams } from "expo-router";
 import { API_BASE_URL } from "./services/api";
-
-/* logic??
-const addToNutritionLog = async () => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    if (!token) {
-      alert('User not authenticated');
-      return;
-    }
-
-    const calories = recipe.calories || 0;
-
-    const res = await axios.post('http://localhost:3000/nutrition-log/add', {
-      recipe_id: id,
-      calories,
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("Nutrition log added:", res.data);
-    alert("Added to your nutrition log!");
-  } catch (err) {
-    console.error("Add to nutrition log error:", err);
-    alert("Failed to log nutrition.");
-  }
-};
- */
 
 const apiURL = API_BASE_URL;
 
@@ -53,9 +23,13 @@ export default function RecipeDetail() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
-  const [addToLog, setAddToLog] = useState();
   const [goalId, setGoalId] = useState();
 
+  // Review states
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewLoading, setReviewLoading] = useState(true);
+
+  // Favorite logic
   const toggleFavorite = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -65,37 +39,29 @@ export default function RecipeDetail() {
       }
 
       if (isFavorite) {
-        // Remove from favorites
         const response = await axios.delete(
           `${apiURL}/favorites/removeFavorite`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              "ngrok-skip-browser-warning": "69420"
+              "ngrok-skip-browser-warning": "69420",
             },
-            data: {
-              recipe_id: id,
-            },
+            data: { recipe_id: id },
           }
         );
-
-        console.log("Removed from favorites:", response.data);
         setIsFavorite(false);
         alert("Removed from favorites!");
       } else {
-        // Add to favorites
         const response = await axios.post(
           `${apiURL}/favorites/favoriteRecipe`,
           { recipe_id: id },
           {
             headers: {
               Authorization: `Bearer ${token}`,
-                  "ngrok-skip-browser-warning": "69420"
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
-
-        console.log("Added to favorites:", response.data);
         setIsFavorite(true);
         alert("Added to favorites!");
       }
@@ -105,30 +71,28 @@ export default function RecipeDetail() {
     }
   };
 
+  // Get goal ID
   const getGoalId = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
-      console.log(token)
       if (!token) {
         alert("User not authenticated");
         return;
       }
-
-      console.log("GETTING TODAY GOAL")
       const res = await axios.get(`${apiURL}/goals/getTodayGoal`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "ngrok-skip-browser-warning": "69420"
+          "ngrok-skip-browser-warning": "69420",
         },
       });
-      console.log(res.data.goal_id);
       setGoalId(res.data.goal_id);
     } catch (err) {
-        console.log("Failed to get ttoday goal")
+      console.log("Failed to get today goal");
       console.error(err);
     }
   };
 
+  // Add to nutrition log
   const addToNutritionLog = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -136,71 +100,109 @@ export default function RecipeDetail() {
         alert("User not authenticated");
         return;
       }
-
-      if(!goalId) {
-          alert("Goal not loaded yet.")
-          return;
+      if (!goalId) {
+        alert("Goal not loaded yet.");
+        return;
       }
-
       const pst = await axios.post(
         `${apiURL}/nutrition/addNutritionRecipe`,
         { recipe_id: id, quantity: 1, goal_id: goalId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-              "ngrok-skip-browser-warning": "69420"
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
-
-      console.log(pst);
+      alert("Added to your nutrition log!");
     } catch (err: any) {
       console.error("Add to Nutrition Log Error:", err);
       alert("Failed to update Nutrition Log.");
     }
   };
 
-  useEffect(() => {
-    const fetchRecipe = async () => {
-      try {
-        const response = await axios.get(
-          `${apiURL}/recipes/getRecipeId`,
-          {
-            params: { recipe_id: id },
-            timeout: 5000,
-          }
-        );
+  // Fetch recipe
+  const fetchRecipe = async () => {
+    try {
+      const response = await axios.get(`${apiURL}/recipes/getRecipeId`, {
+        params: { recipe_id: id },
+        timeout: 5000,
+      });
+      setRecipe(response.data);
+    } catch (err) {
+      console.error("Failed to fetch recipe:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        console.log("RECIPE DETAIL RESPONSE:", response.data);
+  // Fetch reviews
+  const fetchReviews = async () => {
+    try {
+      const res = await axios.get(`${apiURL}/review/getReviews`, {
+        params: { recipe_id: id },
+      });
+      setReviews(res.data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
 
-        setRecipe(response.data);
-      } catch (err) {
-        console.error("Failed to fetch recipe:", err);
-      } finally {
-        setLoading(false);
+  // Add review
+  const submitReview = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        alert("User not authenticated");
+        return;
       }
-    };
+      if (!rating) {
+        alert("Please give a rating!");
+        return;
+      }
 
+      console.log(comment);
+      await axios.post(
+        `${apiURL}/reviews/addReviews`,
+        { recipe_id: id, rating, comment },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }
+      );
+
+      alert("Thanks for your review!");
+      setRating(0);
+      setComment(comment);
+      fetchReviews();
+    } catch (err) {
+      console.error("Submit review error:", err);
+      alert("Failed to submit review.");
+    }
+  };
+
+  useEffect(() => {
     if (id) {
       getGoalId();
       fetchRecipe();
+      fetchReviews();
     }
+    // eslint-disable-next-line
   }, [id]);
-
-  const submitReview = () => {
-    console.log("⭐ Rating:", rating);
-    console.log("📝 Comment:", comment);
-    setRating(0);
-    setComment("");
-    alert("Thanks for your review!");
-  };
 
   if (loading || !recipe) {
     return <Text style={{ margin: 20 }}>Loading...</Text>;
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 50 }}
+    >
       <Image
         source={{ uri: recipe.image_url || "https://via.placeholder.com/300" }}
         style={styles.image}
@@ -233,8 +235,8 @@ export default function RecipeDetail() {
 
       <Text style={styles.sectionTitle}>Instructions:</Text>
       {recipe.instruction
-        ?.replace(/\d+\.\s*/g, "") // hapus penomoran lama seperti "1. "
-        .split(/(?<=\.)\s+/) // pisah berdasarkan titik diikuti spasi
+        ?.replace(/\d+\.\s*/g, "")
+        .split(/(?<=\.)\s+/)
         .map((step: string, idx: number) => (
           <Text key={idx} style={styles.instructions}>
             {idx + 1}. {step.trim()}
@@ -279,6 +281,53 @@ export default function RecipeDetail() {
       <TouchableOpacity style={styles.submitBtn} onPress={submitReview}>
         <Text style={styles.submitText}>Submit Review</Text>
       </TouchableOpacity>
+
+      {/* Review List */}
+      <Text style={styles.sectionTitle}>User Reviews</Text>
+      {reviewLoading ? (
+        <Text style={{ marginBottom: 20 }}>Loading reviews...</Text>
+      ) : reviews.length === 0 ? (
+        <Text style={{ marginBottom: 20, color: "#888" }}>No reviews yet.</Text>
+      ) : (
+        reviews.map((r, idx) => (
+          <View
+            key={r.review_id || idx}
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              marginBottom: 12,
+              padding: 12,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 4,
+              }}
+            >
+              <FontAwesome name="user-circle-o" size={20} color="#888" />
+              <Text style={{ fontWeight: "600", marginLeft: 8 }}>
+                User {r.user_id?.slice(0, 6)}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <FontAwesome
+                  key={i}
+                  name={i <= r.rating ? "star" : "star-o"}
+                  size={16}
+                  color="#FFD700"
+                />
+              ))}
+            </View>
+            <Text style={{ color: "#222", marginTop: 4 }}>{r.comment}</Text>
+            <Text style={{ fontSize: 12, color: "#888", marginTop: 2 }}>
+              {r.created_at ? new Date(r.created_at).toLocaleDateString() : ""}
+            </Text>
+          </View>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -303,16 +352,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontWeight: "600",
-  },
-  wrapper: {
-    backgroundColor: "rgba(236, 250, 216, 1)",
-    padding: 16,
-    marginTop: 24,
-  },
-  sectionTitle2: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
   },
   creatorBox: {
     flexDirection: "row",
@@ -354,6 +393,15 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingVertical: 12,
     alignItems: "center",
+    marginTop: 10,
+    marginBottom: 24,
+  },
+  submitBtn2: {
+    backgroundColor: "#FF9800",
+    borderRadius: 25,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginVertical: 20,
   },
   submitText: {
     color: "#fff",
@@ -392,12 +440,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-  },
-  submitBtn2: {
-    backgroundColor: "#FF9800",
-    borderRadius: 25,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginVertical: 20,
   },
 });
