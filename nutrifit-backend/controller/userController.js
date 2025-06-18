@@ -9,8 +9,8 @@ import dotenv from "dotenv/config";
 import { json } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-// const connectionString = "mysql://root:password@localhost:3306/";
-const connectionString = "mysql://root:@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/";
+// const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function register(req, res) {
   try {
@@ -295,6 +295,52 @@ export async function getUserData(req, res) {
     return res.status(200).json({ data: users });
   } catch (err) {
     console.error(err);
+    return res.status(500).json({ error: "Unexpected error occurred" });
+  }
+}
+
+export async function changePassword(req, res) {
+  try {
+    const connection = await mysql.createConnection(connectionString);
+    const decodedToken = await authentication(req);
+    const userId = decodedToken.sub;
+
+    const { current_password, new_password } = req.body;
+
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: "Both current and new passwords are required" });
+    }
+
+    const [users] = await connection
+      .promise()
+      .query("SELECT password FROM NutriFit.user WHERE user_id = ?", [userId]);
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = users[0];
+
+    const passwordMatch = await argon2.verify(user.password, current_password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    const hashedNewPassword = await argon2.hash(new_password);
+
+    await connection
+      .promise()
+      .query("UPDATE NutriFit.user SET password = ? WHERE user_id = ?", [
+        hashedNewPassword,
+        userId,
+      ]);
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error(err);
+    if (err.message.startsWith("Unauthorized")) {
+      return res.status(401).json({ error: err.message });
+    }
     return res.status(500).json({ error: "Unexpected error occurred" });
   }
 }

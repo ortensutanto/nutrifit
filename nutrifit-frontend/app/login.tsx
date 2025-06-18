@@ -12,9 +12,10 @@ import {
   View,
 } from "react-native";
 import { useUserData } from "./context/userDataContext";
+import { API_BASE_URL } from "./services/api";
 
 // const apiURL = "content-formally-primate.ngrok-free.app";
-const apiURL = "localhost:3000"
+const apiURL = API_BASE_URL;
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -30,7 +31,7 @@ export default function LoginScreen() {
     }
 
     try {
-      const response = await fetch(`http://${apiURL}/users/login`, {
+      const response = await fetch(`${apiURL}/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

@@ -1,6 +1,7 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { AxiosError } from "axios";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -10,9 +11,9 @@ import {
   View,
 } from "react-native";
 import { useUserData } from "../context/userDataContext";
-import { router } from "expo-router";
+import { API_BASE_URL } from "../services/api";
 
-const apiURL = "http://localhost:3000";
+const apiURL = API_BASE_URL;
 
 export default function HomeScreen() {
   const [goalData, setGoalData] = useState({
@@ -36,7 +37,7 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    const hydrateUserData = async () => {
+    const hydrateAndFetch = async () => {
       try {
         const storedName = await AsyncStorage.getItem("displayName");
         if (storedName) {
@@ -45,15 +46,13 @@ export default function HomeScreen() {
             displayName: storedName,
           }));
         }
-        setIsHydrated(true); // agar muncul teks Welcome
+        setIsHydrated(true); 
       } catch (err) {
         console.error("Error restoring user displayName:", err);
       }
     };
 
-    hydrateUserData().then(() => {
-      fetchGoalData(); // ✅ panggil fetch setelah selesai hydrate
-    });
+    hydrateAndFetch();
   }, []);
 
   const fetchGoalData = async () => {
@@ -61,28 +60,35 @@ export default function HomeScreen() {
       const token = await AsyncStorage.getItem("userToken");
       const userId = await AsyncStorage.getItem("userId");
 
-      console.log("Retrieved token:", token);
-
       if (!token || !userId) {
         console.error("Token or userId not found");
         return;
       }
 
-      const goalType = (() => {
-        switch ((userData.primaryGoal || "").toLowerCase()) {
-          case "lose weight":
-            return 1;
-          case "gain weight":
-            return 2;
-          default:
-            return 3;
-        }
+      const goalInfoResponse = await axios.get(`${apiURL}/goals/getGoalInfo`, {
+      headers: { Authorization: `Bearer ${token}` },
+      });
+
+      let goalId;
+
+      if (goalInfoResponse.data?.data?.length > 0) {
+        goalId = goalInfoResponse.data.data[0].goal_id;
+      } else {
+        const goalType = (() => {
+          switch ((userData.primaryGoal || "").toLowerCase()) {
+            case "lose weight":
+              return 1;
+            case "gain weight":
+              return 2;
+            default:
+              return 3;
+          }
       })();
 
       const targetWeightChange = Number(userData.targetWeight || 0);
       const targetTimeWeeks = Number(userData.targetTime || 1);
 
-      await axios.post(
+      const response = await axios.post(
         `${apiURL}/goals/calculateGoals`,
         {
           goal_type: goalType,
@@ -94,32 +100,28 @@ export default function HomeScreen() {
         }
       );
 
-      const goalInfoResponse = await axios.get(`${apiURL}/goals/getGoalInfo`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      goalId = response.data.goal_id;
+    }
 
-      const goalList = goalInfoResponse.data.data;
-      const goalId = goalList?.[0]?.goal_id;
+    if (!goalId) {
+      console.error("No goal_id found after checking or calculating.");
+      return;
+    }
 
-      if (!goalId) {
-        console.error("No goal_id found");
-        return;
-      }
+    const calorieResponse = await axios.get(
+      `${apiURL}/goals/getCalorieNeeded?goal_id=${goalId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      const calorieResponse = await axios.get(
-        `${apiURL}/goals/getCalorieNeeded?goal_id=${goalId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    const { goal_calories, consumed_calories, calories_deficit } =
+      calorieResponse.data;
 
-      const { goal_calories, consumed_calories, calories_deficit } =
-        calorieResponse.data;
-
-      setGoalData({
-        goalCalories: goal_calories,
-        consumedCalories: consumed_calories,
-        caloriesDeficit: calories_deficit,
-        exerciseCalories: exerciseData.caloriesBurned,
-      });
+    setGoalData({
+      goalCalories: goal_calories,
+      consumedCalories: consumed_calories,
+      caloriesDeficit: calories_deficit,
+      exerciseCalories: exerciseData.caloriesBurned,
+    });
     } catch (error) {
       const axiosError = error as AxiosError;
       console.error(
@@ -129,6 +131,7 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
     }
+      
   };
 
   if (!isHydrated || loading) {
@@ -178,25 +181,6 @@ export default function HomeScreen() {
         {loading && (
           <Text style={styles.loadingText}>Loading goal data...</Text>
         )}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Macronutrients</Text>
-        <Text style={styles.cardSubtitle}>Total intake (grams)</Text>
-        <View style={styles.macroContainer}>
-          <View style={styles.macroCircle}>
-            <Text style={styles.macroValue}>150g</Text>
-            <Text style={styles.macroLabel}>Carbs</Text>
-          </View>
-          <View style={styles.macroCircle}>
-            <Text style={styles.macroValue}>80g</Text>
-            <Text style={styles.macroLabel}>Protein</Text>
-          </View>
-          <View style={styles.macroCircle}>
-            <Text style={styles.macroValue}>60g</Text>
-            <Text style={styles.macroLabel}>Fat</Text>
-          </View>
-        </View>
       </View>
 
       <View style={styles.bottomRow}>

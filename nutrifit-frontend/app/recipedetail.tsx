@@ -13,6 +13,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
+import { API_BASE_URL } from "./services/api";
 
 /* logic??
 const addToNutritionLog = async () => {
@@ -43,6 +44,8 @@ const addToNutritionLog = async () => {
 };
  */
 
+const apiURL = API_BASE_URL;
+
 export default function RecipeDetail() {
   const { id } = useLocalSearchParams();
   const [recipe, setRecipe] = useState<any>(null);
@@ -64,7 +67,7 @@ export default function RecipeDetail() {
       if (isFavorite) {
         // Remove from favorites
         const response = await axios.delete(
-          "http://localhost:3000/favorites/removeFavorite",
+          `${apiURL}/favorites/removeFavorite`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -81,7 +84,7 @@ export default function RecipeDetail() {
       } else {
         // Add to favorites
         const response = await axios.post(
-          "http://localhost:3000/favorites/favoriteRecipe",
+          `${apiURL}/favorites/favoriteRecipe`,
           { recipe_id: id },
           {
             headers: {
@@ -108,7 +111,7 @@ export default function RecipeDetail() {
         return;
       }
 
-      const res = await axios.get(`http://localhost:3000/goals/getTodayGoal`, {
+      const res = await axios.get(`${apiURL}:3000/goals/getTodayGoal`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -129,7 +132,7 @@ export default function RecipeDetail() {
       }
 
       const pst = await axios.post(
-        "http://localhost:3000/nutrition/addNutritionRecipe",
+        `${apiURL}/nutrition/addNutritionRecipe`,
         { recipe_id: id, quantity: 1, goal_id: goalId },
         {
           headers: {
@@ -149,7 +152,7 @@ export default function RecipeDetail() {
     const fetchRecipe = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/recipes/getRecipeId`,
+          `${apiURL}/recipes/getRecipeId`,
           {
             params: { recipe_id: id },
             timeout: 5000,

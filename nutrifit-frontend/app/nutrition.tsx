@@ -9,12 +9,15 @@ import {
   Text,
   View,
 } from "react-native";
+import { API_BASE_URL } from "./services/api";
 
 interface Data {
   food_item_id: string;
   quantity: number;
   recipe_id: string;
 }
+
+const apiURL = API_BASE_URL;
 
 export default function NutritionSummaryScreen() {
   // Dummy data (you can replace these later with API values)
@@ -40,7 +43,7 @@ export default function NutritionSummaryScreen() {
 
       // cari goal id
       const goalResponse = await axios.get(
-        `http://localhost:3000/goals/getTodayGoal`,
+        `${apiURL}/goals/getTodayGoal`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -52,7 +55,7 @@ export default function NutritionSummaryScreen() {
 
       // cari nutrition summary dari goal id
       const summaryResponse = await axios.get(
-        `http://localhost:3000/nutrition/getNutritionSummary?goal_id=${goalId}`,
+        `${apiURL}/nutrition/getNutritionSummary?goal_id=${goalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -63,7 +66,7 @@ export default function NutritionSummaryScreen() {
       const nutritionData = summaryResponse.data;
 
       const getcaloriesneed = await axios.get(
-        `http://localhost:3000/goals/getCalorieNeeded/`,
+        `${apiURL}/goals/getCalorieNeeded/`,
         {
           params: { goal_id: goalId },
           headers: {
@@ -84,7 +87,7 @@ export default function NutritionSummaryScreen() {
       const foodDetails: any = await Promise.all(
         nutritionData.data.map((item: any) =>
           axios
-            .get(`http://localhost:3000/recipes/getRecipeId`, {
+            .get(`${apiURL}/recipes/getRecipeId`, {
               params: { recipe_id: item.recipe_id },
               headers: { Authorization: `Bearer ${token}` },
             })
@@ -155,7 +158,7 @@ export default function NutritionSummaryScreen() {
         </Text>
       </View>
 
-      <Text style={styles.subheader}>Today's Nutrition Log:</Text>
+      <Text>Today&apos;s Nutrition Log</Text>
       {nutritionLog.length > 0 ? (
         <FlatList
           data={food}

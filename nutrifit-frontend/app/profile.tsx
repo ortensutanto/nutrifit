@@ -3,8 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { API_BASE_URL } from './services/api';
 
-const apiURL = "http://localhost:3000";
+const apiURL = API_BASE_URL;
 
 export default function ProfilePage() {
    const [username, setUsername] = useState('');

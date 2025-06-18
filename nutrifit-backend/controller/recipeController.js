@@ -7,8 +7,8 @@ import dotenv from "dotenv/config";
 import { authentication } from "./userController.js";
 var request = require("request");
 
-const connectionString = "mysql://root:@localhost:3306/NutriFit";
-// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 // Buat menu recipes
 export async function getRecipesMenu(req, res) {

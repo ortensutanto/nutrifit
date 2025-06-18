@@ -10,6 +10,7 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
+import { API_BASE_URL } from "./services/api";
 
 interface Recipe {
   recipe_id: string;
@@ -17,6 +18,8 @@ interface Recipe {
   calories: number;
   image_url: string;
 }
+
+const apiURL = API_BASE_URL;
 
 const Recomendation = () => {
   const [loading, setLoading] = useState<boolean>();
@@ -33,7 +36,7 @@ const Recomendation = () => {
       }
 
       const res = await axios.get(
-        "http://localhost:3000/recipes/getRecipesRecommendationMenu",
+        `${apiURL}/recipes/getRecipesRecommendationMenu`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

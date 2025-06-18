@@ -1,7 +1,7 @@
 import express from "express"
 const router = express.Router()
 
-import { register, getUser, login, editWeight, editAge, editGender, editHeight, editDisplayName, getUserData } from "../controller/userController.js";
+import { register, getUser, login, editWeight, editAge, editGender, editHeight, editDisplayName, getUserData, changePassword } from "../controller/userController.js";
 import { fatSecretAccessToken } from "../controller/createRecipe.js";
 
 router.get("/getUser", getUser);
@@ -70,5 +70,6 @@ router.post("/editAge", editAge);
 router.post("/editGender", editGender);
 router.post("/editHeight", editHeight);
 router.post("/editDisplayName", editDisplayName);
+router.post("/changePassword", changePassword);
 
 export default router;

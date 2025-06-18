@@ -11,12 +11,12 @@ import {
 } from "react-native";
 
 import { useRouter } from "expo-router";
+import { API_BASE_URL } from "./services/api";
 
-const router = useRouter();
-
-const API_URL = process.env.API_URL || "localhost:3000";
+const apiURL = API_BASE_URL;
 
 export default function BarCodeScanner() {
+  const router = useRouter();
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -60,7 +60,7 @@ export default function BarCodeScanner() {
 
     try {
       const response = await fetch(
-        `http://${API_URL}/barcode/scanBarcodeAPI/${data}`
+        `http://${apiURL}/barcode/scanBarcodeAPI/${data}`
       );
       const json = await response.json();
 

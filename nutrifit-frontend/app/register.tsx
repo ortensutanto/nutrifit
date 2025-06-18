@@ -1,12 +1,12 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  View,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useUserData } from './context/userDataContext';
 
 export default function Register() {
@@ -24,7 +24,7 @@ export default function Register() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Welcome to NutriFit</Text>
-      <Text style={styles.subheader}>Let's get started with your journey</Text>
+      <Text style={styles.subheader}>Let&apos;s get started with your journey</Text>
 
       <TextInput
         placeholder="What should we call you?"

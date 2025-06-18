@@ -37,7 +37,6 @@ export default function More(){
          <Text style={styles.logoutText}>Logout</Text>
          </TouchableOpacity>
 
-         {/*Logout Modal */}
          <Modal
             visible={logoutVisible}
             transparent

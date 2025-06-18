@@ -7,8 +7,9 @@ import {
   Text,
   View,
 } from "react-native";
+import { API_BASE_URL } from "./services/api";
 
-const API_URL = process.env.API_URL || "localhost:3000";
+const apiURL = API_BASE_URL;
 
 export default function ScanResult() {
   const { code } = useLocalSearchParams();
@@ -21,7 +22,7 @@ export default function ScanResult() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `http://${API_URL}/barcode/scanBarcodeAPI/${code}`
+          `http://${apiURL}/barcode/scanBarcodeAPI/${code}`
         );
         const json = await res.json();
         setProduct(json);

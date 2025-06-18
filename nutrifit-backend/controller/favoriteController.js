@@ -7,8 +7,8 @@ import dotenv from "dotenv/config";
 import { v4 as uuidv4 } from "uuid";
 import { authentication } from "./userController.js";
 
-// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-const connectionString = "mysql://root@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root@localhost:3306/NutriFit";
 
 export async function favoriteRecipe(req, res) {
   try {
@@ -78,11 +78,8 @@ export async function getUserFavorites(req, res) {
       [userId]
     );
 
-    if (!favorites || favorites.length === 0) {
-      return res.status(404).json({ body: "User has no favorites" });
-    }
+    return res.status(200).json({ favorites }); 
 
-    return res.status(200).json({ favorites });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: "Something unexpected happened" });

@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { useUserData } from "./context/userDataContext";
 
-// Define types for our data
 type Gender = "Male" | "Female";
 type ActivityLevel =
   | "Sedentary"
@@ -172,7 +171,7 @@ export default function RegisterGoals() {
       </TouchableOpacity>
       {genderDropdownOpen &&
         GENDER_OPTIONS.map((option: keyof typeof GENDER_MAP, i) => {
-          const isSelected = userData.gender === GENDER_MAP[option]; // <--- tambahkan ini
+          const isSelected = userData.gender === GENDER_MAP[option]; 
 
           return (
             <TouchableOpacity
@@ -343,10 +342,6 @@ export default function RegisterGoals() {
         onChangeText={(text) => handleNumberChange("targetTime", text)}
         style={styles.input}
       />
-
-      {/* <Text style={{ fontSize: 12, color: 'gray', marginTop: 20 }}>
-        {JSON.stringify(userData, null, 2)}
-      </Text> */}
 
       {errorMessage !== "" && (
         <Text style={styles.errorText}>{errorMessage}</Text>

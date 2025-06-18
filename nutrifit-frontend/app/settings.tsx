@@ -1,16 +1,23 @@
 import { Feather } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
+import { API_BASE_URL } from './services/api';
 
+const apiURL = API_BASE_URL;
 
-export default function settings() {
+export default function Settings() {
    const [modalVisible, setModalVisible] = useState(false);
    const [currentPassword, setCurrentPassword] = useState('');
    const [newPassword, setNewPassword] = useState('');
    const [confirmPassword, setConfirmPassword] = useState('');
+   const router = useRouter()
 
-   const handlePasswordChange = () => {
+   const handlePasswordChange = async () => {
+
       if (!currentPassword || !newPassword || !confirmPassword) {
          Alert.alert('All fields are required.');
          return;
@@ -21,11 +28,40 @@ export default function settings() {
          return;
       }
 
-      Alert.alert('Password changed successfully!');
-      setModalVisible(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      try {
+         const token = await AsyncStorage.getItem("userToken");
+         if (!token) {
+            Alert.alert('User not authenticated');
+            return;
+         }
+
+         const response = await axios.post(
+            `${apiURL}/users/changePassword`,
+            {
+               current_password:currentPassword,
+               new_password:newPassword
+            },
+            {
+               headers: {
+                  Authorization: `Bearer ${token}`
+               }
+            }
+         );
+         
+         console.log('Password change success:', response.data);
+
+         Alert.alert('Password changed successfully. Please log in again.');
+         setModalVisible(false);
+         setCurrentPassword('');
+         setNewPassword('');
+         setConfirmPassword('');
+
+         router.replace('/login');
+      } catch (error) {
+         console.log('Password change error:', error);
+         const message = (error as any)?.response?.data?.message || 'Failed to change password.';
+         Alert.alert(message);
+      }
    }
    return (
       <View style={styles.container}>
@@ -44,14 +80,6 @@ export default function settings() {
             <View style={styles.inline}>
                <Text style={styles.value}>English</Text>
             </View>
-         </View>
-
-          {/* Social Account */}
-         <View style={styles.item}>
-            <Text style={styles.label}>Facebook</Text>
-            <TouchableOpacity style={styles.connectButton}>
-               <Text style={styles.connectText}>Connect</Text>
-            </TouchableOpacity>
          </View>
 
          {/*Modal for Password */}
@@ -84,7 +112,9 @@ export default function settings() {
                      <TouchableOpacity onPress={() => setModalVisible(false)}>
                         <Text style={styles.cancel}>Cancel</Text>
                      </TouchableOpacity>
-                     <TouchableOpacity onPress={handlePasswordChange}>
+                     <TouchableOpacity onPress={() => {
+                        handlePasswordChange();
+                     }}>
                         <Text style={styles.save}>Save</Text>
                      </TouchableOpacity>
                   </View>

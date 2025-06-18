@@ -12,14 +12,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { API_BASE_URL } from "../services/api";
 
-// const dummyData = Array(4).fill({
-//   title: "Protein Pizza",
-//   calories: "66 Kcal",
-//   image:
-//     "https://m.ftscrt.com/static/recipe/c707153d-d657-47d5-ae6e-4de50214099f.jpg",
-// });
-
+const apiURL = API_BASE_URL;
 const sections = ["Breakfast", "Lunch", "Dinner"];
 
 export default function RecipesScreen() {
@@ -55,7 +50,7 @@ export default function RecipesScreen() {
           //     "ngrok-skip-browser-warning": "69420",
           //   },
           // }
-          "http://localhost:3000/recipes/getRecipesMenu"
+          `${apiURL}/recipes/getRecipesMenu`
         );
         setRecipes(response.data);
       } catch (error) {

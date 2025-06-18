@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { API_BASE_URL } from "../services/api";
 
 type FoodItem = {
   food_item_id: string;
@@ -21,7 +22,7 @@ type FoodItem = {
   carbohydrate: number;
 };
 
-const apiURL = "http://localhost:3000";
+const apiURL = API_BASE_URL;
 const HISTORY_KEY = 'search_history'
 
 export default function SearchScreen() {

@@ -3,21 +3,24 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-   ActivityIndicator,
-   Alert,
-   FlatList,
-   Image,
-   StyleSheet,
-   Text,
-   TouchableOpacity,
-   View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
+import { API_BASE_URL } from "./services/api";
 
 type FavoriteRecipeItem = {
   recipe_id: string;
   title: string;
   image_url: string;
 };
+
+const apiURL = API_BASE_URL;
 
 export default function FavoriteRecipe() {
   const [favorites, setFavorites] = useState<FavoriteRecipeItem[]>([]);
@@ -36,7 +39,7 @@ export default function FavoriteRecipe() {
          return;
          }
 
-         const response = await axios.get("http://localhost:3000/favorites/getUserFavorites", {
+         const response = await axios.get(`${apiURL}/favorites/getUserFavorites`, {
          headers: {
             Authorization: `Bearer ${token}`,
          },
@@ -56,7 +59,7 @@ export default function FavoriteRecipe() {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) return;
 
-      await axios.delete("http://localhost:3000/favorites/removeFavorite", {
+      await axios.delete(`${apiURL}/favorites/removeFavorite`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -4,8 +4,8 @@ const require = createRequire(import.meta.url);
 const mysql = require("mysql2");
 import { authentication } from "./userController.js";
 
-// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-const connectionString = "mysql://root@localhost:3306/NutriFit";
+const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+// const connectionString = "mysql://root@localhost:3306/NutriFit";
 
 export async function getFoodDetailFromName(req, res) {
   const connection = await mysql.createConnection(connectionString);
