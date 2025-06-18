@@ -9,8 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { API_BASE_URL } from "./services/api";
 
-const API_URL = process.env.API_URL || "localhost:3000";
+const API_URL = API_BASE_URL || "localhost:3000";
 
 interface Food {
   name: string;
@@ -97,7 +98,7 @@ export default function FoodDetail() {
         `${API_URL}/foodSearch/getFoodDetailFromId`,
         {
           data: {
-            food_id: id,
+            food_id: food_item_id,
           },
           headers: {
             Authorization: `Bearer ${token}`,

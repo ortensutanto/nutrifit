@@ -46,7 +46,7 @@ export default function HomeScreen() {
             displayName: storedName,
           }));
         }
-        setIsHydrated(true); 
+        setIsHydrated(true);
       } catch (err) {
         console.error("Error restoring user displayName:", err);
       }
@@ -66,7 +66,10 @@ export default function HomeScreen() {
       }
 
       const goalInfoResponse = await axios.get(`${apiURL}/goals/getGoalInfo`, {
-      headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "69420" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "69420",
+        },
       });
 
       let goalId;
@@ -83,48 +86,53 @@ export default function HomeScreen() {
             default:
               return 3;
           }
-      })();
+        })();
 
-      const targetWeightChange = Number(userData.targetWeight || 0);
-      const targetTimeWeeks = Number(userData.targetTime || 1);
+        const targetWeightChange = Number(userData.targetWeight || 0);
+        const targetTimeWeeks = Number(userData.targetTime || 1);
 
-      const response = await axios.post(
-        `${apiURL}/goals/calculateGoals`,
-        {
-          goal_type: goalType,
-          target_weight_change: targetWeightChange,
-          target_time_weeks: targetTimeWeeks,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "69420"
+        const response = await axios.post(
+          `${apiURL}/goals/calculateGoals`,
+          {
+            goal_type: goalType,
+            target_weight_change: targetWeightChange,
+            target_time_weeks: targetTimeWeeks,
           },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420",
+            },
+          }
+        );
 
+        goalId = response.data.goal_id;
+      }
+
+      if (!goalId) {
+        console.error("No goal_id found after checking or calculating.");
+        return;
+      }
+
+      const calorieResponse = await axios.get(
+        `${apiURL}/goals/getCalorieNeeded?goal_id=${goalId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
         }
       );
 
-      goalId = response.data.goal_id;
-    }
+      const { goal_calories, consumed_calories, calories_deficit } =
+        calorieResponse.data;
 
-    if (!goalId) {
-      console.error("No goal_id found after checking or calculating.");
-      return;
-    }
-
-    const calorieResponse = await axios.get(
-      `${apiURL}/goals/getCalorieNeeded?goal_id=${goalId}`,
-      { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "69420" } }
-    );
-
-    const { goal_calories, consumed_calories, calories_deficit } =
-      calorieResponse.data;
-
-    setGoalData({
-      goalCalories: goal_calories,
-      consumedCalories: consumed_calories,
-      caloriesDeficit: calories_deficit,
-      exerciseCalories: exerciseData.caloriesBurned,
-    });
+      setGoalData({
+        goalCalories: goal_calories,
+        consumedCalories: consumed_calories,
+        caloriesDeficit: calories_deficit,
+        exerciseCalories: exerciseData.caloriesBurned,
+      });
     } catch (error) {
       const axiosError = error as AxiosError;
       console.error(
@@ -134,7 +142,6 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
     }
-      
   };
 
   if (!isHydrated || loading) {
@@ -156,7 +163,6 @@ export default function HomeScreen() {
           </Text>
           <Text style={styles.brandCentered}>NutriFit</Text>
         </View>
-        <Feather name="bell" size={22} color="#000" style={styles.bellIcon} />
       </View>
 
       <View style={styles.card}>
@@ -176,40 +182,11 @@ export default function HomeScreen() {
             <Text style={styles.breakdownText}>
               🍽️ Food : {goalData.consumedCalories}
             </Text>
-            <Text style={styles.breakdownText}>
-              🔥 Exercise : {goalData.exerciseCalories}
-            </Text>
           </View>
         </View>
         {loading && (
           <Text style={styles.loadingText}>Loading goal data...</Text>
         )}
-      </View>
-
-      <View style={styles.bottomRow}>
-        <View style={styles.metricBox}>
-          <MaterialCommunityIcons name="cup-water" size={40} color="#009EFF" />
-          <TouchableOpacity style={styles.plusButton}>
-            <Text style={styles.plusText}>+</Text>
-          </TouchableOpacity>
-          <Text style={styles.metricValue}>0.5 L</Text>
-          <Text style={styles.metricLabel}>Daily Water Intake</Text>
-          <Text style={styles.subLabel}>Recommended: 2L</Text>
-        </View>
-
-        <View style={styles.metricBox}>
-          <MaterialCommunityIcons name="fire" size={40} color="#F49A00" />
-          <TouchableOpacity style={styles.syncIcon}>
-            <Feather name="plus" size={16} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.metricValue}>
-            {exerciseData.caloriesBurned} kcal
-          </Text>
-          <Text style={styles.metricLabel}>Exercise</Text>
-          <Text style={styles.subLabel}>
-            {exerciseData.durationMinutes} minutes
-          </Text>
-        </View>
       </View>
 
       <TouchableOpacity
