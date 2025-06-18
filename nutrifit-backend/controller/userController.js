@@ -8,13 +8,14 @@ import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv/config";
 import { json } from "express";
 import { v4 as uuidv4 } from "uuid";
+import { Connection } from "mysql2/typings/mysql/lib/Connection";
 
 // const connectionString = "mysql://root:password@localhost:3306/";
 const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function register(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     // Log registration attempt
     console.log("Registration attempt:", {
       email: req.body.email,
@@ -89,12 +90,14 @@ export async function register(req, res) {
   } catch (err) {
     console.error("Registration error:", err);
     return res.status(500).json({ error: "Unexpected error creating account" });
+  } finally {
+    await connection.end();
   }
 }
 
 export async function getUser(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const [users] = await connection
       .promise()
       .query(
@@ -104,12 +107,14 @@ export async function getUser(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err.message });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function login(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const [users] = await connection
       .promise()
       .query(
@@ -138,6 +143,8 @@ export async function login(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error when logging in" });
+  } finally {
+      await connection.end();
   }
 }
 
@@ -161,8 +168,8 @@ export async function authentication(req) {
 }
 
 export async function editWeight(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
 
@@ -180,12 +187,14 @@ export async function editWeight(req, res) {
       return res.status(401).json({ error: err.message });
     }
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function editAge(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
 
@@ -203,12 +212,14 @@ export async function editAge(req, res) {
       return res.status(401).json({ error: err.message });
     }
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function editGender(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
 
@@ -226,12 +237,14 @@ export async function editGender(req, res) {
       return res.status(401).json({ error: err.message });
     }
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function editHeight(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
 
@@ -249,12 +262,14 @@ export async function editHeight(req, res) {
       return res.status(401).json({ error: err.message });
     }
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+        await connection.end();
   }
 }
 
 export async function editDisplayName(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
 
@@ -274,12 +289,14 @@ export async function editDisplayName(req, res) {
       return res.status(401).json({ error: err.message });
     }
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+        await connection.end();
   }
 }
 
 export async function getUserData(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
     const [users] = await connection
@@ -297,12 +314,14 @@ export async function getUserData(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+        await connection.end();
   }
 }
 
 export async function changePassword(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
 
@@ -343,5 +362,7 @@ export async function changePassword(req, res) {
       return res.status(401).json({ error: err.message });
     }
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+        await connection.end();
   }
 }

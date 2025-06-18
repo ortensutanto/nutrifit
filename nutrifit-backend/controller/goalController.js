@@ -22,8 +22,8 @@ function mifflinStJeor(weight, height, age, gender) {
 }
 
 export async function calculateGoals(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
 
@@ -110,6 +110,8 @@ export async function calculateGoals(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
@@ -118,8 +120,8 @@ export async function calculateGoals(req, res) {
  * If a goal for the current day already exists, it is replaced.
  */
 export async function copyPreviousGoal(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
@@ -182,12 +184,14 @@ export async function copyPreviousGoal(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occured" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function getTodayGoal(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
     const userVerification = await connection
@@ -215,12 +219,14 @@ export async function getTodayGoal(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function getGoalInfo(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
@@ -241,12 +247,14 @@ export async function getGoalInfo(req, res) {
     return res
       .status(500)
       .json({ error: err.message || "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function getCalorieNeeded(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
 
@@ -285,12 +293,14 @@ export async function getCalorieNeeded(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err });
+  } finally {
+        await connection.end();
   }
 }
 
 export async function getGoals(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const [goals] = await connection
       .promise()
       .query("SELECT * FROM NutriFit.goals WHERE user_id = ?", [
@@ -330,5 +340,7 @@ export async function updateGoal(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+        await connection.end();
   }
 }

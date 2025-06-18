@@ -29,8 +29,8 @@ export async function getRecipesMenu(req, res) {
 }
 
 export async function getRecipesRecommendationMenu(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     // Verify user exists
@@ -95,12 +95,14 @@ export async function getRecipesRecommendationMenu(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function getRecipes(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const [recipes] = await connection.promise().query(
       `SELECT r.*, fi.name as ingredient_name 
             FROM NutriFit.recipes r
@@ -128,12 +130,14 @@ export async function getRecipes(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function getRecipeById(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const recipeId = req.query.recipe_id;
 
     const [recipes] = await connection.promise().query(
@@ -171,5 +175,7 @@ export async function getRecipeById(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+        await connection.end();
   }
 }

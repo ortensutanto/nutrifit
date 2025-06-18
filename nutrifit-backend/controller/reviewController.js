@@ -11,8 +11,8 @@ import { authentication } from "./userController.js";
 const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function getReviews(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const [reviews] = await connection
       .promise()
       .query("SELECT * FROM NutriFit.reviews WHERE recipe_id = ?", [
@@ -23,12 +23,14 @@ export async function getReviews(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function addReviews(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
     // Verify user exists
     const userId = decodedToken.sub;
@@ -57,5 +59,7 @@ export async function addReviews(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }

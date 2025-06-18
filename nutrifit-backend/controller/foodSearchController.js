@@ -28,6 +28,8 @@ export async function getFoodDetailFromName(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected Error Occured" });
+  } finally {
+      await connection.end();
   }
 }
 
@@ -50,5 +52,7 @@ export async function getFoodDetailFromId(req, res) {
     } catch(err) {
         console.error(err);
         return res.status(500).json({error: "Unexpected Error Occured"});
+    } finally {
+      await connection.end();
     }
 }

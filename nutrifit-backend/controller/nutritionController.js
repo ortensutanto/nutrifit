@@ -11,8 +11,8 @@ import { authentication } from "./userController.js";
 const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function getNutritionByGoalId(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
@@ -34,12 +34,14 @@ export async function getNutritionByGoalId(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function getNutritionByDate(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
@@ -70,12 +72,14 @@ export async function getNutritionByDate(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function addNutritionFoodItem(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
@@ -106,12 +110,14 @@ export async function addNutritionFoodItem(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function addNutritionRecipe(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
@@ -142,6 +148,8 @@ export async function addNutritionRecipe(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
 
@@ -183,12 +191,14 @@ export async function calculateCalories(userId, goalId) {
     }
   }
 
+  await connection.end();
+
   return calorieCount;
 }
 
 export async function getNutritionSummary(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
     const userId = decodedToken.sub;
@@ -219,5 +229,7 @@ export async function getNutritionSummary(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
