@@ -59,17 +59,21 @@ export default function BarCodeScanner() {
     console.log(data);
 
     try {
+      // Misal API barcode (pakai query param sesuai backend kamu)
       const response = await fetch(
         `${apiURL}/barcode/scanBarcodeAPI?upc_barcode=${data}`
       );
-      // const json = await response.json();
+      const json = await response.json();
 
-      console.log(response);
-
-      // setResult(JSON.stringify(json));
-
-      // Redirect to new page, optionally pass data
-      router.push("/fooddetail"); // or /scan-result if you want a dedicated page
+      // Cek hasil dan ambil id
+      if (json.food_item_id) {
+        // Redirect ke fooddetail dengan food_item_id hasil scan
+        router.push(
+          `/fooddetail?food_item_id=${encodeURIComponent(json.food_item_id)}`
+        );
+      } else {
+        Alert.alert("Not found", "No food found for this barcode");
+      }
     } catch (error) {
       Alert.alert("Error", "Failed to fetch from API");
       console.error(error);
