@@ -134,14 +134,22 @@ const styles = StyleSheet.create({
     margin: 64,
   },
   button: {
+    backgroundColor: "rgba(236,250,216,1)",
+    borderRadius: 25,
     flex: 1,
     alignSelf: "flex-end",
     alignItems: "center",
+    shadowColor: "#FFA726",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 3,
+    padding: 10,
   },
   text: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "white",
+    color: "black",
   },
   resultBox: {
     padding: 16,
