@@ -124,9 +124,18 @@ export default function RecipeDetail() {
   // Fetch recipe
   const fetchRecipe = async () => {
     try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        alert("User not authenticated");
+        return;
+      }
       const response = await axios.get(`${apiURL}/recipes/getRecipeId`, {
         params: { recipe_id: id },
         timeout: 5000,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "69420",
+        },
       });
       setRecipe(response.data);
     } catch (err) {
