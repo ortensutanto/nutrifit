@@ -12,10 +12,18 @@ import {
 
 const API_URL = process.env.API_URL || "localhost:3000";
 
+interface Food {
+  name: string;
+  calories: number;
+  protein: number;
+  carbohydrate: number;
+  fat: number;
+}
+
 export default function FoodDetail() {
   const { id } = useLocalSearchParams();
   const { food_item_id } = useLocalSearchParams();
-  const [food, setFood] = useState<any>(null);
+  const [food, setFood] = useState<Food>();
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [goalId, setGoalId] = useState();
@@ -75,15 +83,41 @@ export default function FoodDetail() {
     }
   };
 
-  useEffect(() => {
-    if (!food_item_id) return;
+  const getFoodFromId = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        alert("User not authenticated");
+        return;
+      }
 
+      if (!food_item_id) return;
+
+      const foodData = await axios.get(
+        `${API_URL}/foodSearch/getFoodDetailFromId`,
+        {
+          data: {
+            food_id: id,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }
+      );
+
+      setFood(foodData.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     setLoading(true);
-    fetch(`${API_URL}/food_items/${food_item_id}`)
-      .then((res) => res.json())
-      .then((data) => setFood(data))
-      .catch(() => setFood({ name: "Unknown Food" }))
-      .finally(() => setLoading(false));
+    getFoodFromId();
+    getGoalId();
   }, [food_item_id]);
 
   if (loading) {
@@ -97,25 +131,23 @@ export default function FoodDetail() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{food.name}</Text>
+      <Text style={styles.title}>{food?.name}</Text>
       <View style={styles.card}>
         <Text style={styles.label}>Calories/portion:</Text>
-        <Text style={styles.value}>{food.calories_per_unit} kcal</Text>
-        <Text style={styles.label}>Portion:</Text>
-        <Text style={styles.value}>{food.portion}</Text>
-        {food.protein !== undefined && (
+        <Text style={styles.value}>{food?.calories} kcal</Text>
+        {food?.protein !== undefined && (
           <>
             <Text style={styles.label}>Protein:</Text>
-            <Text style={styles.value}>{food.protein} g</Text>
+            <Text style={styles.value}>{food?.protein} g</Text>
           </>
         )}
-        {food.carbs !== undefined && (
+        {food?.carbohydrate !== undefined && (
           <>
             <Text style={styles.label}>Carbohydrates:</Text>
-            <Text style={styles.value}>{food.carbs} g</Text>
+            <Text style={styles.value}>{food.carbohydrate} g</Text>
           </>
         )}
-        {food.fat !== undefined && (
+        {food?.fat !== undefined && (
           <>
             <Text style={styles.label}>Fat:</Text>
             <Text style={styles.value}>{food.fat} g</Text>
