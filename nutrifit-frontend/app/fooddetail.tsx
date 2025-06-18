@@ -66,9 +66,12 @@ export default function FoodDetail() {
         return;
       }
 
+      console.log("Adding to nutrtition log")
+      console.log(id);
+
       const pst = await axios.post(
         `${API_URL}/nutrition/addNutritionFoodItem`,
-        { food__item_id: id, quantity: 1, goal_id: goalId },
+        { food_item_id: food_item_id, quantity: 1, goal_id: goalId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
