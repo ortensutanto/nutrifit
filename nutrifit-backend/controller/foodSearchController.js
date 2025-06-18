@@ -36,7 +36,7 @@ export async function getFoodDetailFromName(req, res) {
 export async function getFoodDetailFromId(req, res) {
     const connection = await mysql.createConnection(connectionString);
     try {
-        const foodId = req.query.food_id;
+        const foodId = req.query.food_item_id;
         
         if (!foodId) {
             return res.status(400).json({ error: 'Missing "id" query parameter' });
@@ -44,7 +44,7 @@ export async function getFoodDetailFromId(req, res) {
 
         const [foodDetails] = await connection.promise().query(
             `
-            SELECT * FROM NutriFit.food_items WHERE food_id = ?
+            SELECT * FROM NutriFit.food_items WHERE food_item_id = ?
             `,
             [foodId]
         );

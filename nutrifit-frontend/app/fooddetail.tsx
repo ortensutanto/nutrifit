@@ -67,8 +67,8 @@ export default function FoodDetail() {
       }
 
       const pst = await axios.post(
-        `${API_URL}/nutrition/addNutritionRecipe`,
-        { recipe_id: id, quantity: 1, goal_id: goalId },
+        `${API_URL}/nutrition/addNutritionFoodItem`,
+        { food__item_id: id, quantity: 1, goal_id: goalId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -95,11 +95,8 @@ export default function FoodDetail() {
       if (!food_item_id) return;
 
       const foodData = await axios.get(
-        `${API_URL}/foodSearch/getFoodDetailFromId`,
+        `${API_URL}/foodSearch/getFoodDetailFromId?food_item_id=${food_item_id}`,
         {
-          data: {
-            food_id: food_item_id,
-          },
           headers: {
             Authorization: `Bearer ${token}`,
             "ngrok-skip-browser-warning": "69420",
@@ -107,7 +104,9 @@ export default function FoodDetail() {
         }
       );
 
-      setFood(foodData.data);
+      console.log(foodData);
+
+      setFood(foodData.data[0]);
     } catch (err) {
       console.error(err);
     } finally {
