@@ -212,15 +212,16 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     marginBottom: 20,
-    height: 40,
+    minHeight: 40,
     justifyContent: "center",
+    flexDirection: "row",
+    alignItems: "center",
   },
   welcomeText: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#38C933",
-    marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 14,
     textAlign: "left",
   },
   brandCentered: {
@@ -228,6 +229,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "green",
     textAlign: "center",
+    flex: 1,
   },
   bellIcon: {
     position: "absolute",
