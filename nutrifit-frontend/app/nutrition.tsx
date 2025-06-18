@@ -91,7 +91,9 @@ export default function NutritionSummaryScreen() {
           axios
             .get(`${apiURL}/recipes/getRecipeId`, {
               params: { recipe_id: item.recipe_id },
-              headers: { Authorization: `Bearer ${token}` },
+              headers: { Authorization: `Bearer ${token}` ,
+                "ngrok-skip-browser-warning": "69420"
+              },
             })
             .then((res) => res.data)
         )

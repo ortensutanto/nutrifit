@@ -70,7 +70,10 @@ export default function SearchScreen() {
 
   try {
     const response = await axios.get(`${apiURL}/foodSearch/getFoodDetailFromName`, {
-      params: { name: searchText }
+      params: { name: searchText },
+      headers: {
+        "ngrok-skip-browser-warning": "69420"
+      }
     });
 
     if (Array.isArray(response.data)) {

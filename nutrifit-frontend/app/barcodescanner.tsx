@@ -69,7 +69,7 @@ export default function BarCodeScanner() {
       // setResult(JSON.stringify(json));
 
       // Redirect to new page, optionally pass data
-      // router.push("/recipedetail"); // or /scan-result if you want a dedicated page
+      router.push("/fooddetail"); // or /scan-result if you want a dedicated page
     } catch (error) {
       Alert.alert("Error", "Failed to fetch from API");
       console.error(error);

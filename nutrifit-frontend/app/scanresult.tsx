@@ -22,7 +22,10 @@ export default function ScanResult() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `http://${apiURL}/barcode/scanBarcodeAPI/${code}`
+          `http://${apiURL}/barcode/scanBarcodeAPI/${code}`,
+          {headers: {
+              "ngrok-skip-browser-warning": "69420"
+          }}
         );
         const json = await res.json();
         setProduct(json);

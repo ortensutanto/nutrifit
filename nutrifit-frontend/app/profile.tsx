@@ -27,6 +27,7 @@ export default function ProfilePage() {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
+          "ngrok-skip-browser-warning": "69420"
           },
         });
 
@@ -65,6 +66,7 @@ export default function ProfilePage() {
       const headers = {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+          "ngrok-skip-browser-warning": "69420"
       };
 
       if (username.trim() !== '') {

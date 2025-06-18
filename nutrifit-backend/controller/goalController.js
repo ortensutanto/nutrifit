@@ -92,8 +92,7 @@ export async function calculateGoals(req, res) {
     );
 
     if (existingGoal && existingGoal.length > 0) {
-        return res.status(409).json({ // 409 Conflict is more appropriate here
-            error: "A goal for today already exists. Please update it instead of creating a new one.",
+        return res.status(201).json({ // 409 Conflict is more appropriate here
             goal_id: existingGoal[0].goal_id,
         });
     }

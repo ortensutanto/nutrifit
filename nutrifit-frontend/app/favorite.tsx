@@ -42,6 +42,7 @@ export default function FavoriteRecipe() {
          const response = await axios.get(`${apiURL}/favorites/getUserFavorites`, {
          headers: {
             Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420"
          },
          });
 
@@ -62,6 +63,7 @@ export default function FavoriteRecipe() {
       await axios.delete(`${apiURL}/favorites/removeFavorite`, {
         headers: {
           Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420"
         },
         data: {
           recipe_id: recipeId,

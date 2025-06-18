@@ -43,7 +43,8 @@ export default function Settings() {
             },
             {
                headers: {
-                  Authorization: `Bearer ${token}`
+                  Authorization: `Bearer ${token}`,
+                  "ngrok-skip-browser-warning": "69420"
                }
             }
          );

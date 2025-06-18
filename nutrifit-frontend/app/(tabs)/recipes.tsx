@@ -50,7 +50,11 @@ export default function RecipesScreen() {
           //     "ngrok-skip-browser-warning": "69420",
           //   },
           // }
-          `${apiURL}/recipes/getRecipesMenu`
+          `${apiURL}/recipes/getRecipesMenu`, {
+              headers: {
+                  "ngrok-skip-browser-warning": "69420"
+              }
+          }
         );
         setRecipes(response.data);
       } catch (error) {

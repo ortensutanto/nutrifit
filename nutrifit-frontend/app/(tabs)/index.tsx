@@ -66,7 +66,7 @@ export default function HomeScreen() {
       }
 
       const goalInfoResponse = await axios.get(`${apiURL}/goals/getGoalInfo`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "69420" },
       });
 
       let goalId;
@@ -96,7 +96,10 @@ export default function HomeScreen() {
           target_time_weeks: targetTimeWeeks,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420"
+          },
+
         }
       );
 
@@ -110,7 +113,7 @@ export default function HomeScreen() {
 
     const calorieResponse = await axios.get(
       `${apiURL}/goals/getCalorieNeeded?goal_id=${goalId}`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "69420" } }
     );
 
     const { goal_calories, consumed_calories, calories_deficit } =

@@ -90,6 +90,7 @@ export default function RecipeDetail() {
           {
             headers: {
               Authorization: `Bearer ${token}`,
+                  "ngrok-skip-browser-warning": "69420"
             },
           }
         );
@@ -106,7 +107,6 @@ export default function RecipeDetail() {
 
   const getGoalId = async () => {
     try {
-        console.log("ASOHDIAS HDASHD USER TOKEN CHECK")
       const token = await AsyncStorage.getItem("userToken");
       console.log(token)
       if (!token) {
