@@ -148,9 +148,20 @@ export default function RecipeDetail() {
   // Fetch reviews
   const fetchReviews = async () => {
     try {
-      const res = await axios.get(`${apiURL}/review/getReviews`, {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const res = await axios.get(`${apiURL}/reviews/getReviews`, {
         params: { recipe_id: id },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "69420",
+        },
       });
+      console.log(res.data);
       setReviews(res.data.data || []);
     } catch (err) {
       console.error("Failed to fetch reviews:", err);
