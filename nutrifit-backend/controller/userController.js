@@ -9,8 +9,8 @@ import dotenv from "dotenv/config";
 import { json } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-const connectionString = "mysql://root:password@localhost:3306/";
-// const connectionString = "mysql://root:@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function register(req, res) {
   try {
@@ -129,6 +129,7 @@ export async function login(req, res) {
 
     const payload = { sub: user.user_id, name: user.display_name };
     const token = jsonwebtoken.sign(payload, process.env.JWT_SECRET);
+
     return res.json({
       token,
       userId: user.user_id,

@@ -60,16 +60,16 @@ export default function BarCodeScanner() {
 
     try {
       const response = await fetch(
-        `http://${apiURL}/barcode/scanBarcodeAPI/${data}`
+        `${apiURL}/barcode/scanBarcodeAPI?upc_barcode=${data}`
       );
-      const json = await response.json();
+      // const json = await response.json();
 
       console.log(response);
 
-      setResult(JSON.stringify(json));
+      // setResult(JSON.stringify(json));
 
       // Redirect to new page, optionally pass data
-      router.push("/recipedetail"); // or /scan-result if you want a dedicated page
+      // router.push("/recipedetail"); // or /scan-result if you want a dedicated page
     } catch (error) {
       Alert.alert("Error", "Failed to fetch from API");
       console.error(error);

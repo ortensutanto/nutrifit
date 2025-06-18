@@ -2,10 +2,10 @@ import axios from "axios";
 import { UserDataType } from "../context/userDataContext";
 
 // Ganti dengan IP address komputer Anda
-// const API_BASE_URL = "https://content-formally-primate.ngrok-free.app";
+export const API_BASE_URL = "https://content-formally-primate.ngrok-free.app";
 
 // Local development URL
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+// export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export const registerUser = async (userData: UserDataType) => {
   try {
@@ -31,7 +31,8 @@ export const registerUser = async (userData: UserDataType) => {
       payload,
       {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          "ngrok-skip-browser-warning": "69420"
         }
       }
     );

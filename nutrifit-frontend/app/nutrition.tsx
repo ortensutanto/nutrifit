@@ -35,6 +35,7 @@ export default function NutritionSummaryScreen() {
 
   const getGoalFromAPI = async () => {
     try {
+        console.log("Getting goal from API")
       const token = await AsyncStorage.getItem("userToken");
       if (!token) {
         alert("User not authenticated");
@@ -47,6 +48,7 @@ export default function NutritionSummaryScreen() {
         {
           headers: {
             Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420"
           },
         }
       );
@@ -59,6 +61,7 @@ export default function NutritionSummaryScreen() {
         {
           headers: {
             Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420"
           },
         }
       );
@@ -71,11 +74,10 @@ export default function NutritionSummaryScreen() {
           params: { goal_id: goalId },
           headers: {
             Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420"
           },
         }
       );
-
-      console.log(getcaloriesneed);
 
       setGoalCalories(getcaloriesneed.data.goal_calories);
       setConsumedCalories(getcaloriesneed.data.consumed_calories);

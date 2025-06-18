@@ -6,8 +6,8 @@ import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv/config";
 import { v4 as uuidv4 } from "uuid";
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-// const connectionString = "mysql://root:@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 async function addToFoodItemDatabase(
   food_item_id,
@@ -40,9 +40,10 @@ async function addToFoodItemDatabase(
 }
 
 export async function scanBarcodeAPI(req, res) {
+    console.log(req.query.upc_barcode);
   const connection = await mysql.createConnection(connectionString);
   try {
-    const barcodeScan = req.body.upc_barcode;
+    const barcodeScan = req.query.upc_barcode;
     if (!barcodeScan) {
       return res.status(400).json({ error: "Barcode not provided" });
     }
@@ -51,7 +52,7 @@ export async function scanBarcodeAPI(req, res) {
       `
             SELECT * FROM food_items WHERE upc_barcode = ?
             `,
-      [req.body.upc_barcode]
+      [req.query.upc_barcode]
     );
 
     if (foodRows && foodRows.length > 0) {

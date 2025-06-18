@@ -7,8 +7,8 @@ import dotenv from "dotenv/config";
 import { v4 as uuidv4 } from "uuid";
 import { authentication } from "./userController.js";
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-// const connectionString = "mysql://root:@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root:@localhost:3306/NutriFit";
 
 export async function getNutritionByGoalId(req, res) {
   try {

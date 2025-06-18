@@ -31,11 +31,12 @@ export default function LoginScreen() {
     }
 
     try {
-      const response = await fetch(`${apiURL}/users/login`, {
+      const response = await fetch(`${API_BASE_URL}/users/login`, {
+      // const response = await fetch(`https://content-formally-primate.ngrok-free.app/users/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
-          // "ngrok-skip-browser-warning": "69420"
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "69420"
         },
         body: JSON.stringify({ email, password }),
       });
@@ -43,9 +44,8 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-      
         await AsyncStorage.setItem('userToken', data.token);
-        await AsyncStorage.setItem('userId', data.user_id)
+        await AsyncStorage.setItem('userId', data.userId)
         await AsyncStorage.setItem('displayName', data.displayName);
 
         setUserData((prev) => ({

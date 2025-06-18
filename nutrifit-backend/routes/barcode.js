@@ -29,6 +29,6 @@ import { scanBarcodeAPI } from "../controller/barcodeController.js"
     Error (500): { "error": "<error message from server or Open Food Facts API>" }
 */
 
-router.post("/scanBarcodeAPI", scanBarcodeAPI);
+router.get("/scanBarcodeAPI", scanBarcodeAPI);
 
 export default router;

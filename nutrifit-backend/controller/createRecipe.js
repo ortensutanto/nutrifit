@@ -11,8 +11,8 @@ import { isNull } from "util";
 import { throws } from "assert";
 var request = require("request");
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-// const connectionString = "mysql://root@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root@localhost:3306/NutriFit";
 
 export async function fatSecretAccessToken(req, res) {
   const clientId = "b7abcedb6e454f3390814c8b9c07dae7";

@@ -71,6 +71,7 @@ export default function RecipeDetail() {
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420"
             },
             data: {
               recipe_id: id,
@@ -105,20 +106,25 @@ export default function RecipeDetail() {
 
   const getGoalId = async () => {
     try {
+        console.log("ASOHDIAS HDASHD USER TOKEN CHECK")
       const token = await AsyncStorage.getItem("userToken");
+      console.log(token)
       if (!token) {
         alert("User not authenticated");
         return;
       }
 
-      const res = await axios.get(`${apiURL}:3000/goals/getTodayGoal`, {
+      console.log("GETTING TODAY GOAL")
+      const res = await axios.get(`${apiURL}/goals/getTodayGoal`, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "69420"
         },
       });
       console.log(res.data.goal_id);
       setGoalId(res.data.goal_id);
     } catch (err) {
+        console.log("Failed to get ttoday goal")
       console.error(err);
     }
   };
@@ -131,12 +137,18 @@ export default function RecipeDetail() {
         return;
       }
 
+      if(!goalId) {
+          alert("Goal not loaded yet.")
+          return;
+      }
+
       const pst = await axios.post(
         `${apiURL}/nutrition/addNutritionRecipe`,
         { recipe_id: id, quantity: 1, goal_id: goalId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "69420"
           },
         }
       );

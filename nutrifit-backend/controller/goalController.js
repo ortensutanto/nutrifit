@@ -8,8 +8,8 @@ import { v4 as uuidv4 } from "uuid";
 import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv/config";
 
-const connectionString = "mysql://root:password@localhost:3306/NutriFit";
-// const connectionString = "mysql://root@localhost:3306/NutriFit";
+// const connectionString = "mysql://root:password@localhost:3306/NutriFit";
+const connectionString = "mysql://root@localhost:3306/NutriFit";
 
 function mifflinStJeor(weight, height, age, gender) {
   // gender: 0 (Male), 1 (Female)
