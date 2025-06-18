@@ -135,6 +135,8 @@ export async function scanBarcodeAPI(req, res) {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: err });
+  } finally {
+      await connection.end();
   }
 }
 
@@ -155,6 +157,8 @@ export async function scanBarcode(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+    await connection.end();
   }
 }
 
@@ -180,5 +184,7 @@ export async function addBarcodeItem(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+    await connection.end();
   }
 }

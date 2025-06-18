@@ -11,8 +11,8 @@ import { authentication } from "./userController.js";
 const connectionString = "mysql://root@localhost:3306/NutriFit";
 
 export async function favoriteRecipe(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const recipeId = req.body.recipe_id;
     const decodedToken = await authentication(req);
 
@@ -50,12 +50,14 @@ export async function favoriteRecipe(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Something unexpected happened" });
+  } finally {
+      await connection.end;
   }
 }
 
 export async function getUserFavorites(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
     const decodedToken = await authentication(req);
 
     const userId = decodedToken.sub;
@@ -83,12 +85,14 @@ export async function getUserFavorites(req, res) {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: "Something unexpected happened" });
+  } finally {
+      await connection.end();
   }
 }
 
 export async function removeFavorite(req, res) {
-  try {
     const connection = await mysql.createConnection(connectionString);
+  try {
 
     const decodedToken = await authentication(req);
 
@@ -113,5 +117,7 @@ export async function removeFavorite(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Unexpected error occurred" });
+  } finally {
+      await connection.end();
   }
 }
