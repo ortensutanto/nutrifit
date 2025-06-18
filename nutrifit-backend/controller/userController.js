@@ -8,7 +8,6 @@ import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv/config";
 import { json } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { Connection } from "mysql2/typings/mysql/lib/Connection";
 
 // const connectionString = "mysql://root:password@localhost:3306/";
 const connectionString = "mysql://root:@localhost:3306/NutriFit";
